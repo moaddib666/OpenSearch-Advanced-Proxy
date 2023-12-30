@@ -1,10 +1,5 @@
 package models
 
-// SearchRequest is a struct that represents a search query
-type SearchRequest struct {
-	// FIXME: add the rest of the fields
-}
-
 // SearchResult is a struct that represents the result of a search query
 type SearchResult struct {
 	Took         int           `json:"took"`

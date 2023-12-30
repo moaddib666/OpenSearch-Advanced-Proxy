@@ -2,6 +2,8 @@ package mock_storage
 
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
+	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -26,6 +28,9 @@ func (m *MockStorage) Fields() *models.Fields {
 }
 
 func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, error) {
+	log.Debugf("Searching storage: `%s`", m.Name())
+	jsonRequest, _ := json.Marshal(r)
+	log.Debugf("Search request: %s", string(jsonRequest))
 	datetimeNow := time.Now().UTC().Format(time.RFC3339)
 	return &models.SearchResult{
 		Took:     1,

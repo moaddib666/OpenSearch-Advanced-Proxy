@@ -5,6 +5,7 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 )
 
@@ -12,7 +13,17 @@ import (
 func SearchHandler(storage ports.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Debugf("Manually handling request: %s %s %s\n", r.Method, r.URL.Path, r.Proto)
-		result, err := storage.Search(&models.SearchRequest{})
+		// Dump the request body to the log
+		requestBody, _ := io.ReadAll(r.Body)
+		request := &models.SearchRequest{}
+		err := json.Unmarshal(requestBody, request)
+		log.Debugf("Request body: %s", string(requestBody))
+		if err != nil {
+			log.Errorf("error unmarshalling request: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result, err := storage.Search(request)
 		//
 		if err != nil {
 			log.Errorf("error searching storage: %v", err)
