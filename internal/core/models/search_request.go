@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // SearchRequest represents the overall structure of an OpenSearch request
 type SearchRequest struct {
 	Sort           []map[string]*SortOrder `json:"sort"`
@@ -38,6 +40,21 @@ type Query struct {
 type Filter struct {
 	Bool       *BoolQuery  `json:"bool,omitempty"`
 	MultiMatch *MultiMatch `json:"multi_match"`
+	MatchAll   *MatchAll   `json:"match_all,omitempty"`
+	Range      *Range      `json:"range,omitempty"`
+}
+
+type MatchAll struct {
+}
+
+type Range struct {
+	DateTime *DateTimeRange `json:"datetime,omitempty"`
+}
+
+type DateTimeRange struct {
+	GTE    time.Time `json:"gte"`
+	LTE    time.Time `json:"lte"`
+	Format string    `json:"format"`
 }
 
 // BoolQuery represents a boolean query

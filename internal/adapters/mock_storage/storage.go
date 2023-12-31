@@ -1,13 +1,16 @@
 package mock_storage
 
 import (
+	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
+	"OpenSearchAdvancedProxy/internal/adapters/search"
 	"OpenSearchAdvancedProxy/internal/core/models"
+	"OpenSearchAdvancedProxy/internal/core/ports"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type MockStorage struct {
+	engine ports.SearchEngine
 }
 
 func (m *MockStorage) Name() string {
@@ -31,7 +34,20 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 	log.Debugf("Searching storage: `%s`", m.Name())
 	jsonRequest, _ := json.Marshal(r)
 	log.Debugf("Search request: %s", string(jsonRequest))
-	datetimeNow := time.Now().UTC().Format(time.RFC3339)
+
+	found, err := m.engine.ProcessSearch(r)
+	if err != nil {
+		return nil, err
+	}
+	count := len(found)
+	hits := make([]*models.Hit, count)
+	for i, entry := range found {
+		hits[i] = &models.Hit{
+			Index:  m.Name(),
+			Source: entry.Map(),
+		}
+	}
+
 	return &models.SearchResult{
 		Took:     1,
 		TimedOut: false,
@@ -43,22 +59,17 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 		},
 		Hits: &models.Hits{
 			Total: &models.TotalValue{
-				Value: 1,
+				Value: count,
 			},
-			Hits: []*models.Hit{
-				{
-					Index: m.Name(),
-					Source: map[string]interface{}{
-						"datetime": datetimeNow,
-						"message":  "hello world",
-					},
-				},
-			},
+			Hits: hits,
 		},
 	}, nil
 }
 
 // NewMockStorage creates a new MockStorage struct
 func NewMockStorage() *MockStorage {
-	return &MockStorage{}
+	provider := log_provider.NewLogFileProvider("tmp/test.log")
+	return &MockStorage{
+		engine: search.NewLogSearchEngine(provider),
+	}
 }
