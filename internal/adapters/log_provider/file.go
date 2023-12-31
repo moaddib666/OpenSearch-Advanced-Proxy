@@ -14,6 +14,14 @@ type LogFileProvider struct {
 	entryConstructor ports.EntryConstructor
 }
 
+func (f *LogFileProvider) BeginScan() {
+	f.open()
+}
+
+func (f *LogFileProvider) EndScan() {
+	f.close()
+}
+
 func (f *LogFileProvider) LogEntry() ports.LogEntry {
 	entry := f.entryConstructor()
 	_ = entry.Load(f.scanner.Text())
@@ -21,14 +29,7 @@ func (f *LogFileProvider) LogEntry() ports.LogEntry {
 }
 
 func (f *LogFileProvider) Scan() bool {
-	if f.scanner == nil {
-		f.open()
-	}
-	next := f.scanner.Scan()
-	if !next {
-		f.close()
-	}
-	return next
+	return f.scanner.Scan()
 }
 
 func (f *LogFileProvider) Text() string {
@@ -36,14 +37,7 @@ func (f *LogFileProvider) Text() string {
 }
 
 func (f *LogFileProvider) Err() error {
-	if f.scanner == nil {
-		return nil // FIXME add Close() method to SearchDataProvider interface
-	}
-	err := f.scanner.Err()
-	if err != nil {
-		f.close()
-	}
-	return err
+	return f.scanner.Err()
 }
 
 // open a file and return a scanner

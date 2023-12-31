@@ -3,6 +3,7 @@ package log_provider
 import (
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -25,14 +26,17 @@ func (j *JsonLogEntry) Timestamp() time.Time {
 	logMap := j.Map()
 	ts, ok := logMap[j.tsField]
 	if !ok {
+		log.Debugf("Timestamp field `%s` not found", j.tsField)
 		return time.Time{}
 	}
 	tsStr, ok := ts.(string)
 	if !ok {
+		log.Debugf("Timestamp field `%s` is not a string", j.tsField)
 		return time.Time{}
 	}
 	tsTime, err := time.Parse(time.RFC3339, tsStr)
 	if err != nil {
+		log.Debugf("Timestamp field `%s` is not a valid RFC3339 string", j.tsField)
 		return time.Time{}
 	}
 	return tsTime
