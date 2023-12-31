@@ -11,3 +11,7 @@ type Storage interface {
 
 // SearchFunc is a function that searches the storage.
 type SearchFunc func(r *models.SearchRequest) (*models.SearchResult, error)
+
+type StorageFactory interface {
+	FromConfig(name string, config *models.SubConfig) (Storage, error)
+}

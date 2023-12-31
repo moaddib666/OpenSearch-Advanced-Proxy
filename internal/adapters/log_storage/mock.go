@@ -1,4 +1,4 @@
-package mock_storage
+package log_storage
 
 import (
 	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
@@ -68,7 +68,7 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 
 // NewMockStorage creates a new MockStorage struct
 func NewMockStorage() *MockStorage {
-	provider := log_provider.NewLogFileProvider("tmp/test.log")
+	provider := log_provider.NewLogFileProvider("tmp/test.log", log_provider.JsonLogEntryConstructor)
 	return &MockStorage{
 		engine: search.NewLogSearchEngine(provider),
 	}

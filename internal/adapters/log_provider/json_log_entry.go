@@ -8,8 +8,8 @@ import (
 )
 
 type JsonLogEntry struct {
-	raw     string
-	tsField string
+	raw            string
+	TimeStampField string
 }
 
 func (j *JsonLogEntry) Raw() string {
@@ -24,19 +24,19 @@ func (j *JsonLogEntry) Map() map[string]interface{} { // TODO cache this
 
 func (j *JsonLogEntry) Timestamp() time.Time {
 	logMap := j.Map()
-	ts, ok := logMap[j.tsField]
+	ts, ok := logMap[j.TimeStampField]
 	if !ok {
-		log.Debugf("Timestamp field `%s` not found", j.tsField)
+		log.Debugf("Timestamp field `%s` not found", j.TimeStampField)
 		return time.Time{}
 	}
 	tsStr, ok := ts.(string)
 	if !ok {
-		log.Debugf("Timestamp field `%s` is not a string", j.tsField)
+		log.Debugf("Timestamp field `%s` is not a string", j.TimeStampField)
 		return time.Time{}
 	}
 	tsTime, err := time.Parse(time.RFC3339, tsStr)
 	if err != nil {
-		log.Debugf("Timestamp field `%s` is not a valid RFC3339 string", j.tsField)
+		log.Debugf("Timestamp field `%s` is not a valid RFC3339 string", j.TimeStampField)
 		return time.Time{}
 	}
 	return tsTime
@@ -55,6 +55,6 @@ func (j *JsonLogEntry) LoadBytes(raw []byte) error {
 // JsonLogEntryConstructor creates a new JsonLogEntry struct
 func JsonLogEntryConstructor() ports.LogEntry {
 	return &JsonLogEntry{
-		tsField: "datetime",
+		TimeStampField: "datetime",
 	}
 }

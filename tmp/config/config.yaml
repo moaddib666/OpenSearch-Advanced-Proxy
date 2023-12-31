@@ -1,0 +1,6 @@
+version: 1
+logs:
+  - index: example
+    discovery:
+      type: file
+      location: tmp/config/logs

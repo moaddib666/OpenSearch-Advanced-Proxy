@@ -61,9 +61,9 @@ func (f *LogFileProvider) close() {
 }
 
 // NewLogFileProvider creates a new LogFileProvider struct
-func NewLogFileProvider(filePath string) *LogFileProvider {
+func NewLogFileProvider(filePath string, constructor ports.EntryConstructor) *LogFileProvider {
 	return &LogFileProvider{
 		file:             filePath,
-		entryConstructor: JsonLogEntryConstructor,
+		entryConstructor: constructor,
 	}
 }
