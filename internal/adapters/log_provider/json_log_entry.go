@@ -3,6 +3,7 @@ package log_provider
 import (
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"encoding/json"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -20,6 +21,11 @@ func (j *JsonLogEntry) Map() map[string]interface{} { // TODO cache this
 	logMap := make(map[string]interface{})
 	_ = json.Unmarshal([]byte(j.raw), &logMap) // FIXME bytes
 	return logMap
+}
+
+// As json log does not have an id generate new uuid
+func (j *JsonLogEntry) ID() string {
+	return uuid.New().String()
 }
 
 func (j *JsonLogEntry) Timestamp() time.Time {

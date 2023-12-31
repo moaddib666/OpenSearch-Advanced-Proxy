@@ -1,0 +1,64 @@
+version: '3'
+services:
+  opendistro-es:
+    image: amazon/opendistro-for-elasticsearch:1.13.2
+    container_name: opendistro-es
+    environment:
+      - cluster.name=odfe-cluster
+      - node.name=odfe-node1
+      - discovery.seed_hosts=odfe-node1
+      - cluster.initial_master_nodes=odfe-node1
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - network.host=0.0.0.0
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - odfe-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+#      - 9600:9600 # required for Performance Analyzer
+    networks:
+      - odfe-net
+
+  opendistro-dashboards:
+    image: amazon/opendistro-for-elasticsearch-kibana:1.13.2
+    container_name: opendistro-dashboards
+    depends_on:
+      - opendistro-proxy
+      - opendistro-es
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_URL=http://opendistro-proxy:6600
+      - ELASTICSEARCH_HOSTS=http://opendistro-proxy:6600
+#      - ELASTICSEARCH_URL=https://opendistro-es:9200
+#      - ELASTICSEARCH_HOSTS=https://opendistro-es:9200
+    networks:
+      - odfe-net
+
+  opendistro-proxy:
+    image: moaddib666/opendistro-proxy:1.13.2
+    container_name: opendistro-proxy
+    user: ${UID}
+    environment:
+      - ELASTICSEARCH_URL=https://opendistro-es:9200
+    build:
+        context: ${PWD}
+        dockerfile: infrastrcuture/docker/Dockerfile
+    depends_on:
+      - opendistro-es
+    ports:
+      - 6200:6200
+    volumes:
+      - ${PWD}/tmp:/app/tmp
+    networks:
+      - odfe-net
+
+volumes:
+  odfe-data:
+
+networks:
+  odfe-net:

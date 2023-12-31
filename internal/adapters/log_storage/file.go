@@ -42,6 +42,7 @@ func (f *FileStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 	hits := make([]*models.Hit, count)
 	for i, entry := range found {
 		hits[i] = &models.Hit{
+			ID:     entry.ID(),
 			Index:  f.name,
 			Source: entry.Map(),
 		}

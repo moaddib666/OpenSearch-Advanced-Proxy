@@ -153,7 +153,6 @@ func (se *LogSearchEngine) ProcessSearch(request *models.SearchRequest) ([]ports
 				matchingLines = append(matchingLines, entry)
 			} else if match.IsTimeRangeExcluded() {
 				log.Debugf("Entry is out of time range stop searching: %s", entry.Raw())
-				se.provider.EndScan()
 				break
 			}
 
@@ -163,6 +162,6 @@ func (se *LogSearchEngine) ProcessSearch(request *models.SearchRequest) ([]ports
 	if err := se.provider.Err(); err != nil {
 		return nil, err
 	}
-
+	se.provider.EndScan()
 	return matchingLines, nil
 }

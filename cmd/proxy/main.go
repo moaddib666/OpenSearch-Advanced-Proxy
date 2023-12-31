@@ -7,14 +7,20 @@ import (
 	"OpenSearchAdvancedProxy/internal/adapters/log_storage"
 	"context"
 	log "github.com/sirupsen/logrus"
+	"os"
 )
 
-var ProxyAddr = "localhost:6600"
-var OpenSearchAddr = "localhost:9200"
+var ProxyAddr = "0.0.0.0:6600"
+var OpenSearchAddr = "http://localhost:9200"
 var ConfigDir = "tmp/config"
 
 func init() {
 	log.SetLevel(log.DebugLevel)
+	// Get ELASTICSEARCH_URL from environment
+	if url := os.Getenv("ELASTICSEARCH_URL"); url != "" {
+		log.Debugf("Using ELASTICSEARCH_URL from environment: %s", url)
+		OpenSearchAddr = url
+	}
 }
 func main() {
 	ctx := context.Background()

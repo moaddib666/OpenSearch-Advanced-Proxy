@@ -8,6 +8,7 @@ type LogEntry interface {
 	Timestamp() time.Time
 	Load(string string) error
 	LoadBytes([]byte) error
+	ID() string
 }
 
 type EntryConstructor func() LogEntry
