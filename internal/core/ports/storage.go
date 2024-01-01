@@ -15,3 +15,9 @@ type SearchFunc func(r *models.SearchRequest) (*models.SearchResult, error)
 type StorageFactory interface {
 	FromConfig(name string, config *models.SubConfig) (Storage, error)
 }
+
+type DistributedRequestsProcessor interface {
+	MakeRequest(searchRequest *models.SearchRequest) (string, <-chan *models.SearchResult)
+	AnswerRequest(id string, result *models.SearchResult)
+	ResponseExpected(requestId string, answerRequires int)
+}

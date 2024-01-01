@@ -30,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 	proxy := http_proxy.NewHttpProxy(ProxyAddr, OpenSearchAddr, handlers.DefaultHandler(OpenSearchAddr))
-	storageFactory := log_storage.NewBaseStorageFactory()
+	storageFactory := log_storage.NewBaseStorageFactory(ctx)
 	// TODO add composite
 	for indexName, logConfig := range cfg.AvailableIndexes() {
 		storage, confError := storageFactory.FromConfig(indexName, logConfig)

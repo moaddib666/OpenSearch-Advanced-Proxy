@@ -4,3 +4,7 @@ logs:
     discovery:
       type: file
       location: tmp/config/logs
+  - index: infrastructure
+    discovery:
+      type: file
+      location: tmp/config/logs

@@ -3,16 +3,21 @@ package log_storage
 import (
 	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
 	"OpenSearchAdvancedProxy/internal/adapters/search"
+	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	"context"
 )
 
 type BaseStorageFactory struct {
+	ctx context.Context
 }
 
 // NewBaseStorageFactory - create new BaseStorageFactory
-func NewBaseStorageFactory() *BaseStorageFactory {
-	return &BaseStorageFactory{}
+func NewBaseStorageFactory(ctx context.Context) *BaseStorageFactory {
+	return &BaseStorageFactory{
+		ctx: ctx,
+	}
 }
 
 func (b *BaseStorageFactory) FromConfig(name string, config *models.SubConfig) (ports.Storage, error) {
@@ -22,6 +27,7 @@ func (b *BaseStorageFactory) FromConfig(name string, config *models.SubConfig) (
 	if config.Fields == nil {
 		return nil, models.ErrNoFields
 	}
+	aggregatorFactory := search.NewAggregatorFactory()
 	fields := &models.Fields{}
 	for fieldName, field := range config.Fields {
 		fields.AddField(fieldName, field)
@@ -40,7 +46,14 @@ func (b *BaseStorageFactory) FromConfig(name string, config *models.SubConfig) (
 			})
 		engine := search.NewLogSearchEngine(provider)
 		return NewFileStorage(name, fields, engine), nil
-	} else {
-		return nil, models.ErrUnsupportedProvider
 	}
+
+	if config.Provider == models.WebSocketProvider {
+		proto := search.NewDistributedJsonSearchProtocol()
+		eventProcessor := NewEventProcessor(proto)
+		server := websockets.NewWebSocketServer(config.ProviderConfig["bindAddress"], eventProcessor)
+		go server.Run(b.ctx)
+		return NewWebsocketServerStorage(name, fields, server, eventProcessor, proto, aggregatorFactory), nil
+	}
+	return nil, models.ErrUnsupportedProvider
 }
