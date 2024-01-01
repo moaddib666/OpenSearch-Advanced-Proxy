@@ -57,6 +57,20 @@ services:
     networks:
       - odfe-net
 
+  opendistro-shard:
+    image: moaddib666/opendistro-proxy:1.13.2
+    container_name: opendistro-shard
+    entrypoint: /app/shard
+    user: ${UID}
+    environment:
+      - WEBSOCKET_DSN=ws://opendistro-proxy:8080/
+    depends_on:
+      - opendistro-proxy
+    volumes:
+      - ${PWD}/tmp:/app/tmp
+    networks:
+      - odfe-net
+
 volumes:
   odfe-data:
 

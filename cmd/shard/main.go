@@ -7,17 +7,23 @@ import (
 	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"context"
 	log "github.com/sirupsen/logrus"
+	"os"
 )
 
-var ConfigDir = "tmp/client_config"
+var ConfigDir = "tmp/shard_config"
+var WebsocketDsn = "ws://localhost:8080/"
 
 func init() {
 	log.SetLevel(log.DebugLevel)
+	// Get websockets dsn from env
+	if dsn := os.Getenv("WEBSOCKET_DSN"); dsn != "" {
+		WebsocketDsn = dsn
+	}
 }
 
 func main() {
 	ctx := context.Background()
-	dsn := "ws://localhost:8080/"
+	dsn := WebsocketDsn
 	cfg := config.NewConfig(ConfigDir)
 	err := cfg.Load()
 	if err != nil {
