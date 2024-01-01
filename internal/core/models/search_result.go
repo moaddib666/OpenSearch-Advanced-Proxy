@@ -40,12 +40,15 @@ type TotalValue struct {
 }
 
 type Hit struct {
-	Index  string      `json:"_index,omitempty"`
-	Type   string      `json:"_type,omitempty"`
-	ID     string      `json:"_id,omitempty"`
-	Score  float64     `json:"_score,omitempty"`
-	Source interface{} `json:"_source,omitempty"`
+	Index  string                 `json:"_index,omitempty"`
+	Type   string                 `json:"_type,omitempty"`
+	ID     string                 `json:"_id,omitempty"`
+	Score  float64                `json:"_score,omitempty"`
+	Source map[string]interface{} `json:"_source,omitempty"`
+	Fields interface{}            `json:"fields,omitempty"`
+	Sort   HitSort                `json:"sort,omitempty"`
 }
+type HitSort []int
 
 type Aggregations struct {
 	BucketsAggregate map[string]*Buckets `json:"2"` // Use the appropriate key that matches your JSON structure

@@ -134,7 +134,7 @@ func (w *WebsocketServerStorage) Search(r *models.SearchRequest) (*models.Search
 	})
 	awaitCount := w.server.Broadcast(rawRequest)
 	w.processor.ResponseExpected(id, awaitCount)
-	aggregate := w.aggregatorFactory.CreateAggregator()
+	aggregate := w.aggregatorFactory.CreateAggregator(r)
 	for result := range callback {
 		log.Debugf("Got result from %+v", result)
 		aggregate.AddResult(result)
