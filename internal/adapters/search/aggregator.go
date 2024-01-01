@@ -137,6 +137,10 @@ func (a *Aggregator) GetResult() *models.SearchResult {
 	a.Sort()
 	a.Aggregate()
 
+	if a.request.Size > 0 && len(a.result.Hits.Hits) > a.request.Size {
+		log.Debugf("Limiting result to %d", a.request.Size)
+		a.result.Hits.Hits = a.result.Hits.Hits[:a.request.Size]
+	}
 	return a.result
 }
 

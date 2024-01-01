@@ -1,0 +1,15 @@
+version: 1
+provider: jsonLogFile
+providerConfig:
+  logfile: tmp/test.log
+timestamp:
+  field: datetime
+fields:
+  datetime:
+    type: date
+    searchable: true
+    aggregatable: true
+  message:
+    type: text
+    searchable: true
+    aggregatable: false

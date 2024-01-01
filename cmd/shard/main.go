@@ -2,35 +2,31 @@ package main
 
 import (
 	"OpenSearchAdvancedProxy/internal/adapters/config"
-	"OpenSearchAdvancedProxy/internal/adapters/http_proxy"
-	"OpenSearchAdvancedProxy/internal/adapters/http_proxy/handlers"
 	"OpenSearchAdvancedProxy/internal/adapters/log_storage"
+	"OpenSearchAdvancedProxy/internal/adapters/search"
+	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"context"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
-var ProxyAddr = "0.0.0.0:6600"
-var OpenSearchAddr = "http://localhost:9200"
-var ConfigDir = "tmp/config"
+var ConfigDir = "tmp/client_config"
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	if url := os.Getenv("ELASTICSEARCH_URL"); url != "" {
-		log.Debugf("Using ELASTICSEARCH_URL from environment: %s", url)
-		OpenSearchAddr = url
-	}
 }
+
 func main() {
 	ctx := context.Background()
+	dsn := "ws://localhost:8080/"
 	cfg := config.NewConfig(ConfigDir)
 	err := cfg.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
-	proxy := http_proxy.NewHttpProxy(ProxyAddr, OpenSearchAddr, handlers.DefaultHandler(OpenSearchAddr))
+
+	protocol := search.NewDistributedJsonSearchProtocol()
+	proxy := websockets.NewWebsocketProxy(dsn, protocol)
 	storageFactory := log_storage.NewBaseStorageFactory(ctx)
-	// TODO add composite
 	for indexName, logConfig := range cfg.AvailableIndexes() {
 		storage, confError := storageFactory.FromConfig(indexName, logConfig)
 		if confError != nil {
@@ -39,9 +35,10 @@ func main() {
 		}
 		proxy.AddStorage(storage)
 	}
-	log.Infof("Starting proxy server on %s", ProxyAddr)
 	err = proxy.Start(ctx)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+	// wait forever
+	select {}
 }
