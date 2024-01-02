@@ -3,8 +3,8 @@ logs:
   - index: example
     discovery:
       type: file
-      location: tmp/config/logs
+      location: .local/config/logs
   - index: infrastructure
     discovery:
       type: file
-      location: tmp/config/logs
+      location: .local/config/logs

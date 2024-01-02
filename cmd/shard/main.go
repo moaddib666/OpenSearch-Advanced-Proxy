@@ -3,6 +3,7 @@ package main
 import (
 	"OpenSearchAdvancedProxy/internal/adapters/config"
 	"OpenSearchAdvancedProxy/internal/adapters/log_storage"
+	"OpenSearchAdvancedProxy/internal/adapters/monitoring"
 	"OpenSearchAdvancedProxy/internal/adapters/search"
 	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"context"
@@ -10,15 +11,18 @@ import (
 	"os"
 )
 
-var ConfigDir = "tmp/shard_config"
+var ConfigDir = ".local/shard_config"
 var WebsocketDsn = "ws://localhost:8080/"
+var MetricsAddr = "0.0.0.0:9001"
 
 func init() {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 	// Get websockets dsn from env
 	if dsn := os.Getenv("WEBSOCKET_DSN"); dsn != "" {
 		WebsocketDsn = dsn
 	}
+	metrics := monitoring.NewMetrics()
+	metrics.Bind(MetricsAddr)
 }
 
 func main() {

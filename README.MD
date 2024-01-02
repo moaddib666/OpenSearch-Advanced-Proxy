@@ -74,7 +74,13 @@ In case you want to change the default configuration, please check for a Configu
 
 ## Configuration
 
-Project default configuration is available in the `tmp/config/config.yml` file, this is main entrypoint for `proxy` service.
+By default application setup to discover configuration in the `.local` directory.
+To initialize the configuration, please run the following command in the project
+```bash
+make configure
+```
+This will copy the configuration files from the `examples/config` directory to the `.local` directory.
+This will copy the configuration files from the `examples/config_shared` directory to the `.local` directory.
 
 ### Main Config Structure
 ```yaml
@@ -83,7 +89,7 @@ logs:
   - index: example # Index name to create in OpenSearch Dashboard
     discovery:
       type: file # Index configuration type (only file is supported currently)
-      location: tmp/config/logs # Location of the configuration file
+      location: .local/config/logs # Location of the configuration file
 ```
 
 ### Log Configuration File Structure
@@ -105,7 +111,7 @@ fields:
     aggregatable: false
 ```
 
-The same approach is used for the `shard` service, entrypoint located in the `tmp/shard_config/config.yaml` file.
+The same approach is used for the `shard` service, entrypoint located in the `.local/shard_config/config.yaml` file.
 
 ## Contributing
 

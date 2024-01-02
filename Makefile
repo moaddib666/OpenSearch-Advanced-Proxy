@@ -32,3 +32,18 @@ logs:
 .PHONY: build
 build:
 	docker-compose -f $(COMPOSE_FILE) build
+
+# Configure the services
+.PHONY: configure
+configure:
+	@if [ ! -d "./.local/config" ]; then \
+		cp -prf examples/config ./.local/config; \
+	fi
+	@if [ ! -d "./.local/shard_config" ]; then \
+		cp -prf examples/shard_config ./.local/shard_config; \
+	fi
+	@if [ ! -f "./.local/test.log" ]; then \
+		cp -prf examples/test.log ./.local/test.log; \
+	fi
+
+

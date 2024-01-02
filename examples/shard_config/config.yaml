@@ -3,4 +3,4 @@ logs:
   - index: infrastructure
     discovery:
       type: file
-      location: tmp/shard_config/logs
+      location: .local/shard_config/logs

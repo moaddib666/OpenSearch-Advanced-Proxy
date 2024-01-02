@@ -5,22 +5,27 @@ import (
 	"OpenSearchAdvancedProxy/internal/adapters/http_proxy"
 	"OpenSearchAdvancedProxy/internal/adapters/http_proxy/handlers"
 	"OpenSearchAdvancedProxy/internal/adapters/log_storage"
+	"OpenSearchAdvancedProxy/internal/adapters/monitoring"
 	"context"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 var ProxyAddr = "0.0.0.0:6600"
+var MetricsAddr = "0.0.0.0:9000"
 var OpenSearchAddr = "http://localhost:9200"
-var ConfigDir = "tmp/config"
+var ConfigDir = ".local/config"
 
 func init() {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 	if url := os.Getenv("ELASTICSEARCH_URL"); url != "" {
 		log.Debugf("Using ELASTICSEARCH_URL from environment: %s", url)
 		OpenSearchAddr = url
 	}
+	metrics := monitoring.NewMetrics()
+	metrics.Bind(MetricsAddr)
 }
+
 func main() {
 	ctx := context.Background()
 	cfg := config.NewConfig(ConfigDir)

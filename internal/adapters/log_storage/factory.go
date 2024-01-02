@@ -7,6 +7,7 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	log "github.com/sirupsen/logrus"
 )
 
 type BaseStorageFactory struct {
@@ -36,6 +37,7 @@ func (b *BaseStorageFactory) FromConfig(name string, config *models.SubConfig) (
 	if config.Provider == models.JsonLogFileProvider {
 		logFile, ok := config.ProviderConfig["logfile"]
 		if !ok {
+			log.Errorf("No logfile specified for %s", name)
 			return nil, models.ErrNoLogFile
 		}
 		provider := log_provider.NewLogFileProvider(logFile,

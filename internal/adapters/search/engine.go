@@ -112,7 +112,7 @@ func (se *LogSearchEngine) recursivelyProcessBoolQuery(boolQuery *models.BoolQue
 				}
 				if entry.Timestamp().After(filter.Range.DateTime.LTE) {
 					log.Debugf("Entry %s is after range %s", entry.Timestamp(), filter.Range.DateTime.LTE)
-					result.TimeRangeExcluded()
+					result.OutOfTimeRange()
 					return
 				}
 				result.Match()
@@ -151,7 +151,7 @@ func (se *LogSearchEngine) ProcessSearch(request *models.SearchRequest) ([]ports
 			if match.IsFound() {
 				log.Debugf("Entry matches query: %s", entry.Raw())
 				matchingLines = append(matchingLines, entry)
-			} else if match.IsTimeRangeExcluded() {
+			} else if match.IsOutOfTimeRange() {
 				log.Debugf("Entry is out of time range stop searching: %s", entry.Raw())
 				break
 			}

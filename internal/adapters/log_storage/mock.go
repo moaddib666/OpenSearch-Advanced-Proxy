@@ -68,7 +68,7 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 
 // NewMockStorage creates a new MockStorage struct
 func NewMockStorage() *MockStorage {
-	provider := log_provider.NewLogFileProvider("tmp/test.log", log_provider.JsonLogEntryConstructor)
+	provider := log_provider.NewLogFileProvider(".local/test.log", log_provider.JsonLogEntryConstructor)
 	return &MockStorage{
 		engine: search.NewLogSearchEngine(provider),
 	}

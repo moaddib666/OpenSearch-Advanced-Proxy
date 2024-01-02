@@ -34,8 +34,6 @@ services:
     environment:
       - ELASTICSEARCH_URL=http://opendistro-proxy:6600
       - ELASTICSEARCH_HOSTS=http://opendistro-proxy:6600
-#      - ELASTICSEARCH_URL=https://opendistro-es:9200
-#      - ELASTICSEARCH_HOSTS=https://opendistro-es:9200
     networks:
       - odfe-net
 
@@ -53,7 +51,7 @@ services:
     ports:
       - 6200:6200
     volumes:
-      - ${PWD}/tmp:/app/tmp
+      - ${PWD}/.local:/app/.local
     networks:
       - odfe-net
 
@@ -67,7 +65,7 @@ services:
     depends_on:
       - opendistro-proxy
     volumes:
-      - ${PWD}/tmp:/app/tmp
+      - ${PWD}/.local:/app/.local
     networks:
       - odfe-net
 
