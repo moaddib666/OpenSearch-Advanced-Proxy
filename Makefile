@@ -8,10 +8,8 @@ default: up
 # Start the services in the background
 .PHONY: up
 up:
-	docker-compose -f $(COMPOSE_FILE) up -d
-	echo "Access the Dashboard at http://localhost:5601"
-	echo "Username: admin"
-	echo "Password: admin"
+	@docker-compose -f $(COMPOSE_FILE) up -d
+	@echo "Access the Dashboard at http://localhost:5601"
 
 # Stop the services
 .PHONY: down

@@ -1,7 +1,7 @@
 version: '3'
 services:
   opendistro-es:
-    image: amazon/opendistro-for-elasticsearch:1.13.2
+    image: opensearchproject/opensearch:latest
     container_name: opendistro-es
     environment:
       - cluster.name=odfe-cluster
@@ -24,7 +24,7 @@ services:
       - odfe-net
 
   opendistro-dashboards:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.13.2
+    image: opensearchproject/opensearch-dashboards:latest
     container_name: opendistro-dashboards
     depends_on:
       - opendistro-proxy
@@ -32,8 +32,10 @@ services:
     ports:
       - 5601:5601
     environment:
-      - ELASTICSEARCH_URL=http://opendistro-proxy:6600
-      - ELASTICSEARCH_HOSTS=http://opendistro-proxy:6600
+      - OPENSEARCH_URL=http://opendistro-proxy:6600
+      - OPENSEARCH_HOSTS=http://opendistro-proxy:6600
+      - OPENSEARCH_DASHBOARDS_BASE_PATH=/
+      - OPENSEARCH_DASHBOARDS_SERVER_BASEPATH=/
     networks:
       - odfe-net
 

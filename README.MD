@@ -67,7 +67,7 @@ make
 ## Usage
 
 After service startup, the OpenSearch Dashboard is available at `http://localhost:5601`.
-After login with the default credentials `admin:admin`, you could now play around with custom index patterns and dashboards.
+You could now play around with custom index patterns and dashboards.
 Go to the stack management page and create a new index pattern with the name `infrastructure` and the time field `datetime`.
 Afterward, you could go to Discover and search for `*` to see all available logs, in case nothing appeared please extend a search interval.
 In case you want to change the default configuration, please check for a Configuration section.
