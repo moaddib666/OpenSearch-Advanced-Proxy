@@ -10,7 +10,8 @@ import (
 )
 
 type MockStorage struct {
-	engine ports.SearchEngine
+	engine    ports.SearchEngine
+	aggregate ports.SearchAggregatorFactory
 }
 
 func (m *MockStorage) Name() string {
@@ -34,7 +35,7 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 	log.Debugf("Searching storage: `%s`", m.Name())
 	jsonRequest, _ := json.Marshal(r)
 	log.Debugf("Search request: %s", string(jsonRequest))
-
+	aggregate := m.aggregate.CreateAggregator(r)
 	found, err := m.engine.ProcessSearch(r)
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 		}
 	}
 
-	return &models.SearchResult{
+	result := &models.SearchResult{
 		Took:     1,
 		TimedOut: false,
 		Shards: &models.Shards{
@@ -63,13 +64,16 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 			},
 			Hits: hits,
 		},
-	}, nil
+	}
+	aggregate.AddResult(result)
+	return aggregate.GetResult(), nil
 }
 
 // NewMockStorage creates a new MockStorage struct
 func NewMockStorage() *MockStorage {
 	provider := log_provider.NewLogFileProvider(".local/test.log", log_provider.JsonLogEntryConstructor)
 	return &MockStorage{
-		engine: search.NewLogSearchEngine(provider),
+		engine:    search.NewLogSearchEngine(provider),
+		aggregate: search.NewAggregatorFactory(),
 	}
 }

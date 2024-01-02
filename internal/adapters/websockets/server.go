@@ -42,7 +42,7 @@ func (c *ServerClient) Listen() {
 
 	for {
 		_, message, err := c.Conn.ReadMessage()
-		log.Debugf("Received message: %s", string(message))
+		// log.Debugf("Received message: %s", string(message))
 		if err != nil {
 			break
 		}

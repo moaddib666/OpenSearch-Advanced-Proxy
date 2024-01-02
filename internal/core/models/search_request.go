@@ -4,15 +4,29 @@ import "time"
 
 // SearchRequest represents the overall structure of an OpenSearch request
 type SearchRequest struct {
-	Sort           []map[string]*SortOrder `json:"sort"`
-	Size           int                     `json:"size"`
-	Version        bool                    `json:"version"`
-	StoredFields   []string                `json:"stored_fields"`
-	ScriptFields   map[string]interface{}  `json:"script_fields"`
-	DocvalueFields []*DocvalueField        `json:"docvalue_fields"`
-	Source         *SourceSetting          `json:"_source"`
-	Query          *Query                  `json:"query"`
-	Highlight      *Highlight              `json:"highlight"`
+	Sort           []map[string]*SortOrder       `json:"sort"`
+	Size           int                           `json:"size"`
+	Version        bool                          `json:"version"`
+	StoredFields   []string                      `json:"stored_fields"`
+	ScriptFields   map[string]interface{}        `json:"script_fields"`
+	DocvalueFields []*DocvalueField              `json:"docvalue_fields"`
+	Source         *SourceSetting                `json:"_source"`
+	Query          *Query                        `json:"query"`
+	Highlight      *Highlight                    `json:"highlight"`
+	Aggregations   map[string]*SearchAggregation `json:"aggs"`
+}
+
+// SearchAggregation represents the overall structure of an OpenSearch aggregation
+type SearchAggregation struct {
+	DateHistogram *DateHistogram `json:"date_histogram"`
+}
+
+// DateHistogram represents the overall structure of an OpenSearch date_histogram aggregation
+type DateHistogram struct {
+	Field       string `json:"field"`
+	Interval    string `json:"fixed_interval"`
+	TimeZone    string `json:"time_zone"`
+	MinDocCount int    `json:"min_doc_count"`
 }
 
 // SortOrder represents sorting options

@@ -2,11 +2,11 @@ package models
 
 // SearchResult is a struct that represents the result of a search query
 type SearchResult struct {
-	Took         int           `json:"took"`
-	TimedOut     bool          `json:"timed_out"`
-	Shards       *Shards       `json:"_shards"`
-	Hits         *Hits         `json:"hits"`
-	Aggregations *Aggregations `json:"aggregations"` // FIXME: does not work as expected
+	Took         int                           `json:"took"`
+	TimedOut     bool                          `json:"timed_out"`
+	Shards       *Shards                       `json:"_shards"`
+	Hits         *Hits                         `json:"hits"`
+	Aggregations map[string]*AggregationResult `json:"aggregations"`
 }
 
 // NewSearchResult creates a new SearchResult struct
@@ -50,11 +50,7 @@ type Hit struct {
 }
 type HitSort []int
 
-type Aggregations struct {
-	BucketsAggregate map[string]*Buckets `json:"2"` // Use the appropriate key that matches your JSON structure
-}
-
-type Buckets struct {
+type AggregationResult struct {
 	Buckets []*Bucket `json:"buckets"`
 }
 

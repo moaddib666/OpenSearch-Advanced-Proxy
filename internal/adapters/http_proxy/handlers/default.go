@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"crypto/tls"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"strings"
@@ -37,8 +36,8 @@ func DefaultHandler(dest string) http.HandlerFunc {
 		responseBody, _ := io.ReadAll(resp.Body)
 		// ignore _nodes requests
 		if r.URL.Path != "/_nodes" {
-			log.Debugf("Request Body: %s", string(requestBody))
-			log.Debugf("Response Body: %s", string(responseBody))
+			//log.Debugf("Request Body: %s", string(requestBody))
+			//log.Debugf("Response Body: %s", string(responseBody))
 		}
 		// Write the response back to the original client
 		for key, value := range resp.Header {

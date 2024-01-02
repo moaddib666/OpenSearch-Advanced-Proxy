@@ -36,7 +36,7 @@ func SearchHandler(storage ports.Storage) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		log.Debugf("Search result: %s", string(raw))
+		//log.Debugf("Search result: %s", string(raw))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(raw)

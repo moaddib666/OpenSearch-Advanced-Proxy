@@ -38,7 +38,7 @@ func (w *WebsocketProxy) establishConnection() (err error) {
 	defer w.conn.Close()
 	for {
 		_, message, internalError := w.conn.ReadMessage()
-		log.Debugf("Received message: %s", string(message))
+		//log.Debugf("Received message: %s", string(message))
 		if internalError != nil {
 			log.Errorf("Error reading message: %s", err.Error())
 			return err
