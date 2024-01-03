@@ -279,7 +279,6 @@ func (a *Aggregator) Sort() {
 
 // Aggregate fill in the aggregations
 func (a *Aggregator) Aggregate() {
-	log.Warnf("Aggregation is not implemented yet %+v", a.request.Aggregations)
 	for name, settings := range a.request.Aggregations {
 		log.Debugf("Aggregating %s, %+v", name, settings.DateHistogram)
 		aggr := a.aggr.CreateAggregator(settings)

@@ -7,7 +7,6 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
-	log "github.com/sirupsen/logrus"
 )
 
 type BaseStorageFactory struct {
@@ -28,34 +27,66 @@ func (b *BaseStorageFactory) FromConfig(name string, config *models.SubConfig) (
 	if config.Fields == nil {
 		return nil, models.ErrNoFields
 	}
-	aggregatorFactory := search.NewAggregatorFactory()
 	fields := &models.Fields{}
 	for fieldName, field := range config.Fields {
 		fields.AddField(fieldName, field)
 	}
 
-	if config.Provider == models.JsonLogFileProvider {
-		logFile, ok := config.ProviderConfig["logfile"]
-		if !ok {
-			log.Errorf("No logfile specified for %s", name)
+	return b.createStorage(name, config.Provider, fields, config.Timestamp.Field)
+}
+
+// createStorage - create a storage from a config
+func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig, fields *models.Fields, timestampField string) (ports.Storage, error) {
+
+	aggregatorFactory := search.NewAggregatorFactory()
+
+	switch cfg.GetProvider() {
+	case models.JsonLogFileProvider:
+		config := &models.JsonLogFileProviderConfig{}
+		err := cfg.GetProviderConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		if config.LogFile == "" {
 			return nil, models.ErrNoLogFile
 		}
-		provider := log_provider.NewLogFileProvider(logFile,
+		provider := log_provider.NewLogFileProvider(config.LogFile,
 			func() ports.LogEntry {
 				return &log_provider.JsonLogEntry{
-					TimeStampField: config.Timestamp.Field,
+					TimeStampField: timestampField,
 				}
 			})
 		engine := search.NewLogSearchEngine(provider)
 		return NewFileStorage(name, fields, engine), nil
-	}
-
-	if config.Provider == models.WebSocketProvider {
+	case models.WebSocketProvider:
+		config := &models.WebSocketProviderConfig{}
+		err := cfg.GetProviderConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		if config.BindAddress == "" {
+			return nil, models.ErrNoBindAddress
+		}
 		proto := search.NewDistributedJsonSearchProtocol()
 		eventProcessor := NewEventProcessor(proto)
-		server := websockets.NewWebSocketServer(config.ProviderConfig["bindAddress"], eventProcessor)
+		server := websockets.NewWebSocketServer(config.BindAddress, eventProcessor)
 		go server.Run(b.ctx)
 		return NewWebsocketServerStorage(name, fields, server, eventProcessor, proto, aggregatorFactory), nil
+	case models.AggregateProvider:
+		config := &models.AggregateProviderConfig{}
+		err := cfg.GetProviderConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		storages := make([]ports.Storage, len(config.SubProviders))
+		for i, subConfig := range config.SubProviders {
+			storage, err := b.createStorage(name, subConfig, fields, timestampField)
+			if err != nil {
+				return nil, err
+			}
+			storages[i] = storage
+		}
+		return NewAggregateStorage(name, storages, fields, aggregatorFactory), nil
 	}
 	return nil, models.ErrUnsupportedProvider
 }

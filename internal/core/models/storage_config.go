@@ -29,11 +29,10 @@ type Discovery struct {
 }
 
 type SubConfig struct {
-	Version        ConfigVersion     `yaml:"version"`
-	Provider       ProviderType      `yaml:"provider"`
-	ProviderConfig map[string]string `yaml:"providerConfig"`
-	Fields         map[string]*Field `yaml:"fields"`
-	Timestamp      *TimestampConfig  `yaml:"timestamp"`
+	Version   ConfigVersion           `yaml:"version"`
+	Provider  *AbstractProviderConfig `yaml:"provider"`
+	Fields    map[string]*Field       `yaml:"fields"`
+	Timestamp *TimestampConfig        `yaml:"timestamp"`
 }
 
 type TimestampConfig struct {

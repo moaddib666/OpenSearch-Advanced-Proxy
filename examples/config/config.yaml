@@ -8,3 +8,7 @@ logs:
     discovery:
       type: file
       location: .local/config/logs
+  - index: internal
+    discovery:
+      type: file
+      location: .local/config/logs

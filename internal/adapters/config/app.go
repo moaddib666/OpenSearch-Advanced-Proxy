@@ -60,7 +60,7 @@ func (c *AppConfig) resolve() error {
 			var subConfig models.SubConfig
 			err = yaml.Unmarshal(subConfigData, &subConfig)
 			if err != nil {
-				log.Errorf("Error parsing sub-config file: %s", subConfigPath)
+				log.Errorf("Error parsing sub-config file: %s - %s", subConfigPath, err)
 				continue
 			}
 

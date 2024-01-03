@@ -6,6 +6,7 @@ import (
 	"context"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"reflect"
 )
 
 type HttpProxy struct {
@@ -33,7 +34,7 @@ func (h *HttpProxy) Start(ctx context.Context) error {
 
 func (h *HttpProxy) AddStorage(storage ports.Storage) {
 	name := storage.Name()
-	log.Infof("Adding storage: `%s`", name)
+	log.Infof("Adding storage %s::%s", reflect.TypeOf(storage).Elem().Name(), name)
 	log.Debugf("Registering handlers for storage: `%s`", name)
 	indexHandlerName := "/_resolve/index/" + name
 	log.Debugf("Registering handler: `%s`", indexHandlerName)

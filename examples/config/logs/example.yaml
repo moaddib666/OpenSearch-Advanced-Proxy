@@ -1,7 +1,8 @@
 version: 1
-provider: jsonLogFile
-providerConfig:
-  logfile: .local/test.log
+provider:
+    name: jsonLogFile
+    config:
+      logfile: .local/test.log
 timestamp:
   field: datetime
 fields:
