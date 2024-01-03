@@ -3,6 +3,8 @@ provider:
     name: jsonLogFile
     config:
       logfile: .local/test.log
+      index:
+        resolution: 3.6e+12 # Nanoseconds (1 hour)
 timestamp:
   field: datetime
 fields:

@@ -3,22 +3,25 @@ package log_storage
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	"context"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
 type FileStorage struct {
-	name   string
-	fields *models.Fields
-	engine ports.SearchEngine
+	name      string
+	fields    *models.Fields
+	engine    ports.SearchEngine
+	searchTTL time.Duration
 }
 
 // NewFileStorage - create a new FileStorage
 func NewFileStorage(name string, fields *models.Fields, engine ports.SearchEngine) *FileStorage {
 	return &FileStorage{
-		name:   name,
-		fields: fields,
-		engine: engine,
+		name:      name,
+		fields:    fields,
+		engine:    engine,
+		searchTTL: 30 * time.Second,
 	}
 }
 
@@ -31,12 +34,13 @@ func (f *FileStorage) Fields() *models.Fields {
 }
 
 func (f *FileStorage) Search(r *models.SearchRequest) (*models.SearchResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), f.searchTTL)
+	defer cancel()
 	start := time.Now()
-	found, err := f.engine.ProcessSearch(r)
+	found, err := f.engine.ProcessSearch(ctx, r)
 	timeTaken := int(time.Since(start).Milliseconds())
 	if err != nil {
-		log.Errorf("Error processing search: %s", err.Error())
-		return nil, err
+		log.Errorf("Error processing search: %s, took: %d nanoseconds", err.Error(), timeTaken)
 	}
 	count := len(found)
 	hits := make([]*models.Hit, count)
@@ -50,7 +54,7 @@ func (f *FileStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 
 	return &models.SearchResult{
 		Took:     timeTaken,
-		TimedOut: false,
+		TimedOut: ctx.Err() != nil,
 		Shards: &models.Shards{
 			Total:      1,
 			Successful: 1,

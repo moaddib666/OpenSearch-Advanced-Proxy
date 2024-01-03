@@ -5,6 +5,7 @@ import (
 	"OpenSearchAdvancedProxy/internal/adapters/search"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	"context"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 )
@@ -36,7 +37,7 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 	jsonRequest, _ := json.Marshal(r)
 	log.Debugf("Search request: %s", string(jsonRequest))
 	aggregate := m.aggregate.CreateAggregator(r)
-	found, err := m.engine.ProcessSearch(r)
+	found, err := m.engine.ProcessSearch(context.Background(), r)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (m *MockStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 
 // NewMockStorage creates a new MockStorage struct
 func NewMockStorage() *MockStorage {
-	provider := log_provider.NewLogFileProvider(".local/test.log", log_provider.JsonLogEntryConstructor)
+	provider := log_provider.NewLogFileProvider(".local/test.log", log_provider.JsonLogEntryConstructor, nil)
 	return &MockStorage{
 		engine:    search.NewLogSearchEngine(provider),
 		aggregate: search.NewAggregatorFactory(),

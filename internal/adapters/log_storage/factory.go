@@ -1,12 +1,14 @@
 package log_storage
 
 import (
+	"OpenSearchAdvancedProxy/internal/adapters/indexer"
 	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
 	"OpenSearchAdvancedProxy/internal/adapters/search"
 	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	log "github.com/sirupsen/logrus"
 )
 
 type BaseStorageFactory struct {
@@ -50,12 +52,22 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 		if config.LogFile == "" {
 			return nil, models.ErrNoLogFile
 		}
+		var idx ports.Indexer
+		if config.Index != nil {
+			idx = indexer.NewJsonFileIndexer(config.LogFile, timestampField, config.Index.Resolution)
+			err := idx.LoadOrCreateIndex()
+			if err != nil {
+				log.Fatalf("Error loading index: %s", err.Error())
+			}
+		}
 		provider := log_provider.NewLogFileProvider(config.LogFile,
 			func() ports.LogEntry {
 				return &log_provider.JsonLogEntry{
 					TimeStampField: timestampField,
 				}
-			})
+			},
+			idx,
+		)
 		engine := search.NewLogSearchEngine(provider)
 		return NewFileStorage(name, fields, engine), nil
 	case models.WebSocketProvider:

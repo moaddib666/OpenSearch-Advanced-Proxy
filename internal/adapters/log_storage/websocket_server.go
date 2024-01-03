@@ -140,5 +140,6 @@ func (w *WebsocketServerStorage) Search(r *models.SearchRequest) (*models.Search
 		aggregate.AddResult(result)
 	}
 	// TODO context with timeout for waiting responses 5 minutes
+	// TODO Make error response if not shard answered
 	return aggregate.GetResult(), nil
 }

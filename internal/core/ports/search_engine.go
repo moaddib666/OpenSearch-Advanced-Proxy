@@ -1,7 +1,10 @@
 package ports
 
-import "OpenSearchAdvancedProxy/internal/core/models"
+import (
+	"OpenSearchAdvancedProxy/internal/core/models"
+	"context"
+)
 
 type SearchEngine interface {
-	ProcessSearch(request *models.SearchRequest) ([]LogEntry, error)
+	ProcessSearch(ctx context.Context, request *models.SearchRequest) ([]LogEntry, error)
 }

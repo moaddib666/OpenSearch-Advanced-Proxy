@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type ProviderType string
@@ -13,7 +14,12 @@ const (
 )
 
 type JsonLogFileProviderConfig struct {
-	LogFile string `json:"logfile" yaml:"logFile"`
+	LogFile string               `json:"logfile" yaml:"logFile"`
+	Index   *ProviderIndexConfig `json:"index" yaml:"index"`
+}
+
+type ProviderIndexConfig struct {
+	Resolution time.Duration `json:"resolution" yaml:"resolution"`
 }
 
 type WebSocketProviderConfig struct {

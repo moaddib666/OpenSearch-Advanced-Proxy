@@ -3,6 +3,8 @@ package search
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	"context"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strings"
 )
@@ -140,28 +142,61 @@ func (se *LogSearchEngine) recursivelyProcessBoolQuery(boolQuery *models.BoolQue
 	return
 }
 
-func (se *LogSearchEngine) ProcessSearch(request *models.SearchRequest) ([]ports.LogEntry, error) {
+func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.SearchRequest) ([]ports.LogEntry, error) {
 	var matchingLines []ports.LogEntry
-	se.provider.BeginScan()
+	// ---------------------------- begin ----------------------------
+	// FIXME: currently support only one range and sort order
+	if len(request.DocvalueFields) != 1 {
+		return nil, models.ErrUnsupportedDocvalueFields
+	}
+	docValueField := request.DocvalueFields[0].Field
+	srt := request.Sort[0][docValueField]
+	var rg *models.Range
+	for _, filter := range request.Query.Bool.Filter {
+		if filter.Range != nil {
+			rg = filter.Range
+			break
+		}
+	}
+	// ---------------------------- end  ----------------------------
+	se.provider.BeginScan(request.Size, rg, srt)
+	defer se.provider.EndScan()
 	for se.provider.Scan() {
+		// check if context is done canceled
+		select {
+		case <-ctx.Done():
+			log.Warnf("Search request canceled as timeout reached")
+			return matchingLines, fmt.Errorf("search request canceled as timeout reached")
+		default:
+			// do nothing
+		}
+
 		entry := se.provider.LogEntry()
+		if entry == nil {
+			continue
+		}
+		if entry.Timestamp().Before(rg.DateTime.GTE) {
+			//log.Debugf("Entry %s is before range %s", entry.Timestamp(), rg.DateTime.GTE)
+			continue
+		}
+		if entry.Timestamp().After(rg.DateTime.LTE) {
+			//log.Debugf("Entry %s is after range %s", entry.Timestamp(), rg.DateTime.LTE)
+			break
+		}
+		// TODO: Add condition constructor aka matcher.
 		if request.Query != nil && request.Query.Bool != nil {
-			log.Debugf("Processing entry: %s", entry.Raw())
+			// log.Debugf("Processing entry: %s", entry.Raw())
 			match := se.recursivelyProcessBoolQuery(request.Query.Bool, entry)
 			if match.IsFound() {
 				log.Debugf("Entry matches query: %s", entry.Raw())
 				matchingLines = append(matchingLines, entry)
-			} else if match.IsOutOfTimeRange() {
-				log.Debugf("Entry is out of time range stop searching: %s", entry.Raw())
-				break
 			}
-
 		}
 	}
 
 	if err := se.provider.Err(); err != nil {
 		return nil, err
 	}
-	se.provider.EndScan()
+
 	return matchingLines, nil
 }

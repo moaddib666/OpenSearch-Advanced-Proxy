@@ -1,10 +1,12 @@
 package log_provider
 
 import (
+	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"bufio"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"sync"
 )
 
 type LogFileProvider struct {
@@ -12,14 +14,35 @@ type LogFileProvider struct {
 	scanner          *bufio.Scanner
 	fh               *os.File
 	entryConstructor ports.EntryConstructor
+	indexer          ports.Indexer
+	endPos           int64
+	startPos         int64
+	mux              sync.Mutex
 }
 
-func (f *LogFileProvider) BeginScan() {
+func (f *LogFileProvider) BeginScan(size int, r *models.Range, s *models.SortOrder) {
+	f.mux.Lock()
 	f.open()
+	if f.indexer != nil {
+		err := f.indexer.LoadOrCreateIndex()
+		if err != nil {
+			log.Warnf("Index was not loaded: %s", err.Error())
+			return
+		}
+		f.startPos, err = f.indexer.SearchStartPos(r.DateTime.GTE)
+		if err == nil {
+			log.Debugf("Start position: %d", f.startPos)
+			_, err = f.fh.Seek(f.startPos, 0)
+			if err != nil {
+				log.Warnf("Error seeking to start position: %s", err.Error())
+			}
+		}
+	}
 }
 
 func (f *LogFileProvider) EndScan() {
 	f.close()
+	f.mux.Unlock()
 }
 
 func (f *LogFileProvider) LogEntry() ports.LogEntry {
@@ -29,6 +52,9 @@ func (f *LogFileProvider) LogEntry() ports.LogEntry {
 }
 
 func (f *LogFileProvider) Scan() bool {
+	if f.startPos == -1 {
+		return false
+	}
 	return f.scanner.Scan()
 }
 
@@ -61,9 +87,11 @@ func (f *LogFileProvider) close() {
 }
 
 // NewLogFileProvider creates a new LogFileProvider struct
-func NewLogFileProvider(filePath string, constructor ports.EntryConstructor) *LogFileProvider {
+func NewLogFileProvider(filePath string, constructor ports.EntryConstructor, indexer ports.Indexer) *LogFileProvider {
 	return &LogFileProvider{
 		file:             filePath,
 		entryConstructor: constructor,
+		indexer:          indexer,
+		mux:              sync.Mutex{},
 	}
 }

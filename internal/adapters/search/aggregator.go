@@ -110,7 +110,7 @@ func (t *TimeIntervalAggregator) Aggregate(hits []*models.Hit) *models.Aggregati
 		log.Debugf("Invalid interval: %s", t.FixedInterval)
 		intervalDuration, err = t.AutoDetectInterval(hits, sortRule)
 		if err != nil {
-			log.Warnf("Invalid interval: %s", t.FixedInterval)
+			log.Warnf("Invalid interval: %s err %s", t.FixedInterval, err)
 			return &models.AggregationResult{}
 		}
 		t.FixedInterval = intervalDuration.String()
