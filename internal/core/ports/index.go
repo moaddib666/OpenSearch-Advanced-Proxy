@@ -7,6 +7,7 @@ type Indexer interface {
 	CreateIndex() error
 	LoadIndex() error
 	LoadOrCreateIndex() error
+	ReIndex() error
 	SearchStartPos(ts time.Time) (int64, error)
 	SearchEndPos(ts time.Time) (int64, error)
 }

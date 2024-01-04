@@ -3,6 +3,7 @@ package indexer
 import (
 	"OpenSearchAdvancedProxy/internal/adapters/lock"
 	"OpenSearchAdvancedProxy/internal/core/models"
+	"OpenSearchAdvancedProxy/internal/core/ports"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -15,7 +16,7 @@ type JsonFileIndexer struct {
 	file    string
 	tsField string
 	Index   *models.Index
-	locker  *lock.TryLocker // FIXME move to pkg/lock
+	locker  ports.TryLocker // FIXME move to pkg/lock
 }
 
 func (j *JsonFileIndexer) SearchStartPos(ts time.Time) (int64, error) {
@@ -67,6 +68,13 @@ func (j *JsonFileIndexer) CreateIndex() error {
 	var lastTimestamp time.Time
 	var position int64
 	scanner := bufio.NewScanner(file)
+	err = j.index(scanner, lastTimestamp, position)
+	log.Infof("Indexing complete, saving index %s", j.file+".index")
+	return j.SaveIndex()
+}
+
+// index - create an index for the file
+func (j *JsonFileIndexer) index(scanner *bufio.Scanner, lastTimestamp time.Time, position int64) error {
 	for scanner.Scan() {
 		var logEntry map[string]interface{}
 		if err := json.Unmarshal(scanner.Bytes(), &logEntry); err != nil {
@@ -95,13 +103,52 @@ func (j *JsonFileIndexer) CreateIndex() error {
 		log.Errorf("Error creating index %s: %s", j.file, scanner.Err())
 		return scanner.Err()
 	}
-	log.Infof("Indexing complete, saving index %s", j.file+".index")
-	return j.SaveIndex()
+	return nil
 }
 
 // Helper function to check if two timestamps are in the same interval
 func isInSameInterval(a, b time.Time, interval time.Duration) bool {
 	return a.Truncate(interval).Equal(b.Truncate(interval))
+}
+
+// ReIndex - reindex the file
+func (j *JsonFileIndexer) ReIndex() error {
+	// Load the existing index
+	err := j.LoadIndex()
+	if err != nil {
+		// If the index doesn't exist or can't be loaded, create a new index
+		log.Debugf("Index file not found or invalid. Creating a new index for %s", j.file)
+		return j.CreateIndex()
+	}
+
+	// Check if the index is empty
+	if len(j.Index.Entries) == 0 {
+		log.Debugf("Index is empty. Creating a new index for %s", j.file)
+		return j.CreateIndex()
+	}
+
+	// Get the last entry from the index
+	lastEntry := j.Index.Entries[len(j.Index.Entries)-1]
+	lastTimestamp := lastEntry.Timestamp
+	lastPosition := lastEntry.Position
+
+	// Open the file and seek to the last position
+	file, err := os.Open(j.file)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	_, err = file.Seek(lastPosition, 0)
+	if err != nil {
+		return fmt.Errorf("failed to seek to position %d: %v", lastPosition, err)
+	}
+	// TODO check that last position the same ts as in index
+	if err := j.index(bufio.NewScanner(file), lastTimestamp, lastPosition); err != nil {
+		return err
+	}
+	log.Debugf("Indexing complete, saving index %s", j.file+".index")
+	return j.SaveIndex()
 }
 
 func (j *JsonFileIndexer) LoadIndex() error {
@@ -131,11 +178,10 @@ func (j *JsonFileIndexer) LoadOrCreateIndex() error {
 		log.Debugf("Creating index for %s", j.file+".index")
 		return j.CreateIndex()
 	} else {
+		// TODO make schedule configurable reindexing not only on app restart
 		if fInfo.ModTime().Before(time.Now().Add(-1 * j.Index.Step)) {
-			log.Debugf("Updating index for %s", j.file+".index")
-			// TODO: Continue index creation from last position
-			// 	- If last position is not found in file, create index from scratch
-			//return j.CreateIndex()
+			log.Debugf("Reindexing %s", j.file+".index")
+			return j.ReIndex()
 		}
 	}
 	return j.LoadIndex()
