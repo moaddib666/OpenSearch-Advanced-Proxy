@@ -81,10 +81,10 @@ type DateTimeRange struct {
 
 // BoolQuery represents a boolean query
 type BoolQuery struct {
-	//Must    *MatchQuery `json:"must,omitempty"`
-	Filter []*Filter `json:"filter,omitempty"`
-	//Should  []*MatchQuery `json:"should,omitempty"`
-	//MustNot []*MatchQuery `json:"must_not,omitempty"`
+	Must    []*Filter `json:"must,omitempty"`
+	Filter  []*Filter `json:"filter,omitempty"`
+	Should  []*Filter `json:"should,omitempty"`
+	MustNot []*Filter `json:"must_not,omitempty"`
 }
 
 // MatchQuery represents a match query

@@ -99,6 +99,7 @@ func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.Se
 	// ---------------------------- end  ----------------------------
 	se.provider.BeginScan(request.Size, rg, srt)
 	defer se.provider.EndScan()
+	filter, err := se.filterFactory.FromQuery(request.Query)
 	for se.provider.Scan() {
 		// check if context is done canceled
 		select {
@@ -122,7 +123,7 @@ func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.Se
 			//log.Debugf("Entry %s is after range %s", entry.Timestamp(), rg.DateTime.LTE)
 			break
 		}
-		filter, err := se.filterFactory.FromQuery(request.Query)
+
 		if err != nil {
 			return nil, err
 		}

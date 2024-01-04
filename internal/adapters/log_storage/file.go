@@ -52,14 +52,22 @@ func (f *FileStorage) Search(r *models.SearchRequest) (*models.SearchResult, err
 		}
 	}
 
+	successShardCount := 0
+	failedShardCount := 0
+	timeout := ctx.Err() != nil
+	if !timeout {
+		successShardCount = 1
+	} else {
+		failedShardCount = 1
+	}
 	return &models.SearchResult{
 		Took:     timeTaken,
-		TimedOut: ctx.Err() != nil,
+		TimedOut: timeout,
 		Shards: &models.Shards{
 			Total:      1,
-			Successful: 1,
+			Successful: successShardCount,
 			Skipped:    0,
-			Failed:     0,
+			Failed:     failedShardCount,
 		},
 		Hits: &models.Hits{
 			Total: &models.TotalValue{

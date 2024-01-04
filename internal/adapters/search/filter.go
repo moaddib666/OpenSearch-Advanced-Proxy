@@ -184,6 +184,20 @@ func (f *FilterFactory) FromQuery(query *models.Query) (ports.SearchFilter, erro
 			}
 			filterSet = append(filterSet, f)
 		}
+		for _, filter := range query.Bool.MustNot {
+			f, err := f.CreateFilter(filter)
+			if err != nil {
+				return nil, err
+			}
+			filterSet = append(filterSet, NewExcludeFilter(f))
+		}
+		for _, filter := range query.Bool.Must {
+			f, err := f.CreateFilter(filter)
+			if err != nil {
+				return nil, err
+			}
+			filterSet = append(filterSet, f)
+		}
 		return NewBoolFilter(filterSet), nil
 	}
 
