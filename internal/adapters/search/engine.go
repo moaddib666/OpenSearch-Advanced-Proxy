@@ -6,11 +6,11 @@ import (
 	"context"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"strings"
 )
 
 type LogSearchEngine struct {
-	provider ports.SearchDataProvider
+	provider      ports.SearchDataProvider
+	filterFactory *FilterFactory
 }
 
 type LogSearchResult struct {
@@ -75,71 +75,9 @@ func NewLogSearchResult(filtersCount int) *LogSearchResult {
 // NewLogSearchEngine - create a new LogSearchEngine
 func NewLogSearchEngine(provider ports.SearchDataProvider) *LogSearchEngine {
 	return &LogSearchEngine{
-		provider: provider,
+		provider:      provider,
+		filterFactory: NewFilterFactory(),
 	}
-}
-
-func (se *LogSearchEngine) matchMultiMatchQuery(multiMatch *models.MultiMatch, entry ports.LogEntry) bool {
-	if multiMatch.Type == "phrase" {
-		// FIXME: This is a very naive implementation
-		log.Debugf("Matching phrase: %s", multiMatch.Query)
-		return strings.Contains(entry.Raw(), multiMatch.Query)
-	}
-	if multiMatch.Type == "best_fields" {
-		// FIXME: This is a very naive implementation
-		log.Debugf("Matching best_fields: %s", multiMatch.Query)
-		return strings.Contains(entry.Raw(), multiMatch.Query)
-	}
-	// Additional conditions for other MultiMatch types can be added here
-	return false
-}
-
-func (se *LogSearchEngine) recursivelyProcessBoolQuery(boolQuery *models.BoolQuery, entry ports.LogEntry) (result *LogSearchResult) {
-	result = NewLogSearchResult(len(boolQuery.Filter))
-	if boolQuery == nil {
-		result.Found()
-		return
-	}
-
-	// Process 'filter' queries
-	for _, filter := range boolQuery.Filter {
-		if filter.Range != nil {
-			if filter.Range.DateTime != nil && filter.Range.DateTime.Format == "strict_date_optional_time" {
-				log.Debugf("Range query: %s", filter.Range.DateTime.GTE)
-				log.Debugf("Range query: %s", filter.Range.DateTime.LTE)
-				if entry.Timestamp().Before(filter.Range.DateTime.GTE) {
-					log.Debugf("Entry %s is before range %s", entry.Timestamp(), filter.Range.DateTime.GTE)
-					result.TimeRangeExcluded()
-					return
-				}
-				if entry.Timestamp().After(filter.Range.DateTime.LTE) {
-					log.Debugf("Entry %s is after range %s", entry.Timestamp(), filter.Range.DateTime.LTE)
-					result.OutOfTimeRange()
-					return
-				}
-				result.Match()
-			}
-		}
-		if filter.MatchAll != nil {
-			result.Match()
-			continue
-		}
-		if filter.Bool != nil {
-			if se.recursivelyProcessBoolQuery(filter.Bool, entry).IsFound() {
-				result.Match()
-				continue
-			}
-		}
-		if filter.MultiMatch != nil {
-			if se.matchMultiMatchQuery(filter.MultiMatch, entry) {
-				result.Match()
-				continue
-			}
-		}
-	}
-	// Similar logic can be implemented for 'must', 'should', and 'must_not'
-	// if they are required for your use case
-	return
 }
 
 func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.SearchRequest) ([]ports.LogEntry, error) {
@@ -175,6 +113,7 @@ func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.Se
 		if entry == nil {
 			continue
 		}
+		// Performance optimization: skip entries that are outside the time range before applying filters
 		if entry.Timestamp().Before(rg.DateTime.GTE) {
 			//log.Debugf("Entry %s is before range %s", entry.Timestamp(), rg.DateTime.GTE)
 			continue
@@ -183,15 +122,14 @@ func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.Se
 			//log.Debugf("Entry %s is after range %s", entry.Timestamp(), rg.DateTime.LTE)
 			break
 		}
-		// TODO: Add condition constructor aka matcher.
-		if request.Query != nil && request.Query.Bool != nil {
-			// log.Debugf("Processing entry: %s", entry.Raw())
-			match := se.recursivelyProcessBoolQuery(request.Query.Bool, entry)
-			if match.IsFound() {
-				log.Debugf("Entry matches query: %s", entry.Raw())
-				matchingLines = append(matchingLines, entry)
-			}
+		filter, err := se.filterFactory.FromQuery(request.Query)
+		if err != nil {
+			return nil, err
 		}
+		if !filter.Match(entry) {
+			continue
+		}
+		matchingLines = append(matchingLines, entry)
 	}
 
 	if err := se.provider.Err(); err != nil {

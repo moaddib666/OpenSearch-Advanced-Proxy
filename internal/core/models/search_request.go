@@ -52,10 +52,18 @@ type Query struct {
 }
 
 type Filter struct {
-	Bool       *BoolQuery  `json:"bool,omitempty"`
-	MultiMatch *MultiMatch `json:"multi_match"`
-	MatchAll   *MatchAll   `json:"match_all,omitempty"`
-	Range      *Range      `json:"range,omitempty"`
+	Bool        *BoolFilter `json:"bool,omitempty"`
+	MultiMatch  *MultiMatch `json:"multi_match"`
+	MatchAll    *MatchAll   `json:"match_all,omitempty"`
+	MatchPhrase MatchPhrase `json:"match_phrase,omitempty"`
+	Range       *Range      `json:"range,omitempty"`
+}
+
+type MatchPhrase map[string]string
+
+type BoolFilter struct {
+	Filter  []*Filter `json:"filter,omitempty"`
+	MustNot *Filter   `json:"must_not,omitempty"`
 }
 
 type MatchAll struct {
@@ -75,8 +83,8 @@ type DateTimeRange struct {
 type BoolQuery struct {
 	//Must    *MatchQuery `json:"must,omitempty"`
 	Filter []*Filter `json:"filter,omitempty"`
-	//Should  *MatchQuery `json:"should,omitempty"`
-	//MustNot *MatchQuery `json:"must_not,omitempty"`
+	//Should  []*MatchQuery `json:"should,omitempty"`
+	//MustNot []*MatchQuery `json:"must_not,omitempty"`
 }
 
 // MatchQuery represents a match query

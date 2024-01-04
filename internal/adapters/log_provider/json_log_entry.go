@@ -19,7 +19,10 @@ func (j *JsonLogEntry) Raw() string {
 
 func (j *JsonLogEntry) Map() map[string]interface{} { // TODO cache this
 	logMap := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(j.raw), &logMap) // FIXME bytes
+	err := json.Unmarshal([]byte(j.raw), &logMap) // FIXME bytes
+	if err != nil {
+		log.Warnf("Error unmarshalling json log entry: %s", err.Error())
+	}
 	return logMap
 }
 
