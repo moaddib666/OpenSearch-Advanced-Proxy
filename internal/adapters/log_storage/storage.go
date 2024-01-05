@@ -4,32 +4,40 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
-	_ "github.com/ClickHouse/clickhouse-go"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-type ClickhouseStorage struct {
+type GenericStorage struct {
 	name      string
 	fields    *models.Fields
 	engine    ports.SearchEngine
 	searchTTL time.Duration
 }
 
-func (c *ClickhouseStorage) Name() string {
-	return c.name
+// NewGenericStorage - create a new GenericStorage
+func NewGenericStorage(name string, fields *models.Fields, engine ports.SearchEngine) *GenericStorage {
+	return &GenericStorage{
+		name:      name,
+		fields:    fields,
+		engine:    engine,
+		searchTTL: 60 * time.Second,
+	}
 }
 
-func (c *ClickhouseStorage) Fields() *models.Fields {
-	return c.fields
+func (f *GenericStorage) Name() string {
+	return f.name
 }
 
-func (c *ClickhouseStorage) Search(r *models.SearchRequest) (*models.SearchResult, error) {
-	// FIXME: DRY looks like this abstraction is not needed lets reuse 1:1
-	ctx, cancel := context.WithTimeout(context.Background(), c.searchTTL)
+func (f *GenericStorage) Fields() *models.Fields {
+	return f.fields
+}
+
+func (f *GenericStorage) Search(r *models.SearchRequest) (*models.SearchResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), f.searchTTL)
 	defer cancel()
 	start := time.Now()
-	found, err := c.engine.ProcessSearch(ctx, r)
+	found, err := f.engine.ProcessSearch(ctx, r)
 	timeTaken := int(time.Since(start).Milliseconds())
 	if err != nil {
 		log.Errorf("Error processing search: %s, took: %d nanoseconds", err.Error(), timeTaken)
@@ -39,10 +47,11 @@ func (c *ClickhouseStorage) Search(r *models.SearchRequest) (*models.SearchResul
 	for i, entry := range found {
 		hits[i] = &models.Hit{
 			ID:     entry.ID(),
-			Index:  c.name,
+			Index:  f.name,
 			Source: entry.Map(),
 		}
 	}
+
 	successShardCount := 0
 	failedShardCount := 0
 	timeout := ctx.Err() != nil
@@ -67,13 +76,4 @@ func (c *ClickhouseStorage) Search(r *models.SearchRequest) (*models.SearchResul
 			Hits: hits,
 		},
 	}, nil
-}
-
-func NewClickhouseStorage(name string, fields *models.Fields, engine ports.SearchEngine) *ClickhouseStorage {
-	return &ClickhouseStorage{
-		name:      name,
-		fields:    fields,
-		engine:    engine,
-		searchTTL: 60 * time.Second, // FIXME: Hardcoded
-	}
 }

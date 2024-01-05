@@ -5,6 +5,7 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"database/sql"
 	"fmt"
+	_ "github.com/ClickHouse/clickhouse-go"
 	log "github.com/sirupsen/logrus"
 	"sync"
 )
@@ -27,6 +28,14 @@ func NewSQLDatabaseProvider(queryBuilder ports.QueryBuilderFactory, db *sql.DB, 
 		table:            table,
 		entryConstructor: entryConstructor,
 	}
+}
+
+func NewClickhouseProvider(dsn, table string, queryBuilder ports.QueryBuilderFactory, entryConstructor ports.EntryConstructor) *SQLDatabaseProvider {
+	db, err := sql.Open("clickhouse", dsn)
+	if err != nil {
+		log.Fatalf("Error while opening database: %s", err)
+	}
+	return NewSQLDatabaseProvider(queryBuilder, db, table, entryConstructor)
 }
 
 func (s *SQLDatabaseProvider) Text() string {
