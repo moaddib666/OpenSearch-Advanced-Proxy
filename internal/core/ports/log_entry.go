@@ -6,8 +6,9 @@ type LogEntry interface {
 	Raw() string
 	Map() map[string]interface{}
 	Timestamp() time.Time
-	Load(string string) error
+	LoadString(string string) error
 	LoadBytes([]byte) error
+	LoadMap(map[string]interface{}) error
 	ID() string
 }
 

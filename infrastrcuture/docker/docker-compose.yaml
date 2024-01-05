@@ -71,8 +71,32 @@ services:
     networks:
       - odfe-net
 
+  clickhouse-shard:
+    image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-shard
+    container_name: clickhouse-shard
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "8123:8123" # HTTP interface shard
+      - "9000:9000" # Native client interface shard
+    volumes:
+      - clickhouse_shard_data:/var/lib/clickhouse
+      - ${PWD}/infrastrcuture/docker/clickhouse/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ${PWD}/examples/test.log:/tmp/test.log
+    environment:
+      CLICKHOUSE_DB: logs
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: "default"
+      INITIAL_DATA_PATH: /tmp/test.log
+    networks:
+      - odfe-net
+
 volumes:
   odfe-data:
+  clickhouse_shard_data:
 
 networks:
   odfe-net:

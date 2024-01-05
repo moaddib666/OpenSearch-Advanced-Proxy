@@ -16,7 +16,7 @@ type JsonFileIndexer struct {
 	file    string
 	tsField string
 	Index   *models.Index
-	locker  ports.TryLocker // FIXME move to pkg/lock
+	locker  ports.TryLocker
 }
 
 func (j *JsonFileIndexer) SearchStartPos(ts time.Time) (int64, error) {
@@ -30,7 +30,6 @@ func (j *JsonFileIndexer) SearchStartPos(ts time.Time) (int64, error) {
 }
 
 func (j *JsonFileIndexer) SearchEndPos(ts time.Time) (int64, error) {
-	// FIXME implement me
 	for _, entry := range j.Index.Entries {
 		if entry.Timestamp.Equal(ts.Truncate(j.Index.Step)) || entry.Timestamp.After(ts) {
 			return entry.Position, nil
@@ -53,8 +52,7 @@ func NewJsonFileIndexer(file string, tsField string, resolution time.Duration) *
 }
 
 func (j *JsonFileIndexer) GetIndexName() string {
-	//TODO implement me
-	panic("implement me")
+	return j.file + ".index"
 }
 
 func (j *JsonFileIndexer) CreateIndex() error {
@@ -113,7 +111,7 @@ func isInSameInterval(a, b time.Time, interval time.Duration) bool {
 
 // ReIndex - reindex the file
 func (j *JsonFileIndexer) ReIndex() error {
-	// Load the existing index
+	// LoadString the existing index
 	err := j.LoadIndex()
 	if err != nil {
 		// If the index doesn't exist or can't be loaded, create a new index

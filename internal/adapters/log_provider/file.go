@@ -20,16 +20,17 @@ type LogFileProvider struct {
 	mux              sync.Mutex
 }
 
-func (f *LogFileProvider) BeginScan(size int, r *models.Range, s *models.SortOrder) {
+func (f *LogFileProvider) BeginScan(r *models.SearchRequest) {
 	f.mux.Lock()
 	f.open()
+	rg := r.GetRange()
 	if f.indexer != nil {
 		err := f.indexer.LoadOrCreateIndex()
 		if err != nil {
 			log.Warnf("Index was not loaded: %s", err.Error())
 			return
 		}
-		f.startPos, err = f.indexer.SearchStartPos(r.DateTime.GTE)
+		f.startPos, err = f.indexer.SearchStartPos(rg.DateTime.GTE)
 		if err == nil {
 			log.Debugf("Start position: %d", f.startPos)
 			_, err = f.fh.Seek(f.startPos, 0)
@@ -47,7 +48,7 @@ func (f *LogFileProvider) EndScan() {
 
 func (f *LogFileProvider) LogEntry() ports.LogEntry {
 	entry := f.entryConstructor()
-	_ = entry.Load(f.scanner.Text())
+	_ = entry.LoadString(f.scanner.Text())
 	return entry
 }
 

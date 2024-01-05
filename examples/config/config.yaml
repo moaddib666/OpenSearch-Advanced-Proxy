@@ -12,3 +12,7 @@ logs:
     discovery:
       type: file
       location: .local/config/logs
+  - index: clickhouse
+    discovery:
+      type: file
+      location: .local/config/logs

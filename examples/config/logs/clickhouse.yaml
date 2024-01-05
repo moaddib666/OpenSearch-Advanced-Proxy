@@ -1,0 +1,17 @@
+version: 1
+provider:
+    name: clickhouse
+    config:
+      dsn: tcp://localhost:9000?username=default&password=default&database=logs
+      table: example
+timestamp:
+  field: datetime
+fields:
+  datetime:
+    type: date
+    searchable: true
+    aggregatable: true
+  message:
+    type: text
+    searchable: true
+    aggregatable: false

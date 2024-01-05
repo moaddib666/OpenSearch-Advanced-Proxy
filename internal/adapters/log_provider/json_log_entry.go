@@ -51,7 +51,7 @@ func (j *JsonLogEntry) Timestamp() time.Time {
 	return tsTime
 }
 
-func (j *JsonLogEntry) Load(raw string) error {
+func (j *JsonLogEntry) LoadString(raw string) error {
 	j.raw = raw
 	return nil
 }
@@ -59,6 +59,15 @@ func (j *JsonLogEntry) Load(raw string) error {
 func (j *JsonLogEntry) LoadBytes(raw []byte) error {
 	j.raw = string(raw)
 	return nil
+}
+
+func (j *JsonLogEntry) LoadMap(raw map[string]interface{}) error {
+	rawJson, err := json.Marshal(raw)
+	if err != nil {
+		return err
+	}
+	j.raw = string(rawJson)
+	return err
 }
 
 // JsonLogEntryConstructor creates a new JsonLogEntry struct

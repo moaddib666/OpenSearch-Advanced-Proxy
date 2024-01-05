@@ -12,7 +12,7 @@ import (
 )
 
 var ProxyAddr = "0.0.0.0:6600"
-var MetricsAddr = "0.0.0.0:9000"
+var MetricsAddr = "0.0.0.0:9002"
 var OpenSearchAddr = "http://localhost:9200"
 var ConfigDir = ".local/config"
 

@@ -8,6 +8,7 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	"database/sql"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -84,6 +85,30 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 		server := websockets.NewWebSocketServer(config.BindAddress, eventProcessor)
 		go server.Run(b.ctx)
 		return NewWebsocketServerStorage(name, fields, server, eventProcessor, proto, aggregatorFactory), nil
+	case models.ClickhouseProvider:
+		config := &models.ClickhouseProviderConfig{}
+		err := cfg.GetProviderConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		if config.DSN == "" {
+			return nil, models.ErrNoClickhouseDSN
+		}
+		db, err := sql.Open("clickhouse", config.DSN)
+		if err != nil {
+			log.Fatalf("Error opening clickhouse connection: %s", err.Error())
+		}
+		var searchableFields []string
+		for fieldName := range fields.Fields {
+			// Note: currently support of flag isSearchable
+			searchableFields = append(searchableFields, fieldName)
+		}
+		factory := search.NewSQLQueryBuilderFactory(searchableFields, timestampField)
+		provider := log_provider.NewSQLDatabaseProvider(factory, db, config.Table, func() ports.LogEntry {
+			return log_provider.SqlLogEntryConstructor()
+		})
+		engine := search.NewSQLDBSearchEngine(provider)
+		return NewClickhouseStorage(name, fields, engine), nil
 	case models.AggregateProvider:
 		config := &models.AggregateProviderConfig{}
 		err := cfg.GetProviderConfig(config)

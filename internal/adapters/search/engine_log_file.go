@@ -82,22 +82,8 @@ func NewLogSearchEngine(provider ports.SearchDataProvider) *LogSearchEngine {
 
 func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.SearchRequest) ([]ports.LogEntry, error) {
 	var matchingLines []ports.LogEntry
-	// ---------------------------- begin ----------------------------
-	// FIXME: currently support only one range and sort order
-	if len(request.DocvalueFields) != 1 {
-		return nil, models.ErrUnsupportedDocvalueFields
-	}
-	docValueField := request.DocvalueFields[0].Field
-	srt := request.Sort[0][docValueField]
-	var rg *models.Range
-	for _, filter := range request.Query.Bool.Filter {
-		if filter.Range != nil {
-			rg = filter.Range
-			break
-		}
-	}
-	// ---------------------------- end  ----------------------------
-	se.provider.BeginScan(request.Size, rg, srt)
+	rg := request.GetRange()
+	se.provider.BeginScan(request)
 	defer se.provider.EndScan()
 	filter, err := se.filterFactory.FromQuery(request.Query)
 	for se.provider.Scan() {
@@ -109,7 +95,6 @@ func (se *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.Se
 		default:
 			// do nothing
 		}
-
 		entry := se.provider.LogEntry()
 		if entry == nil {
 			continue

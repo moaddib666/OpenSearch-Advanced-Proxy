@@ -16,6 +16,25 @@ type SearchRequest struct {
 	Aggregations   map[string]*SearchAggregation `json:"aggs"`
 }
 
+func (r *SearchRequest) GetRange() *Range {
+	var rg *Range
+	for _, filter := range r.Query.Bool.Filter {
+		if filter.Range != nil {
+			rg = filter.Range
+			break
+		}
+	}
+	return rg
+}
+
+func (r *SearchRequest) GetSortOrder() (*SortOrder, error) {
+	if len(r.DocvalueFields) != 1 {
+		return nil, ErrUnsupportedDocvalueFields
+	}
+	docValueField := r.DocvalueFields[0].Field
+	return r.Sort[0][docValueField], nil
+}
+
 // SearchAggregation represents the overall structure of an OpenSearch aggregation
 type SearchAggregation struct {
 	DateHistogram *DateHistogram `json:"date_histogram"`

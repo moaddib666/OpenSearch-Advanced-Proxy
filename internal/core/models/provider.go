@@ -11,11 +11,17 @@ const (
 	JsonLogFileProvider ProviderType = "jsonLogFile"
 	WebSocketProvider   ProviderType = "webSocketServer"
 	AggregateProvider   ProviderType = "aggregate"
+	ClickhouseProvider  ProviderType = "clickhouse"
 )
 
 type JsonLogFileProviderConfig struct {
 	LogFile string               `json:"logfile" yaml:"logFile"`
 	Index   *ProviderIndexConfig `json:"index" yaml:"index"`
+}
+
+type ClickhouseProviderConfig struct {
+	DSN   string `json:"dsn" yaml:"dsn"`
+	Table string `json:"table" yaml:"table"`
 }
 
 type ProviderIndexConfig struct {

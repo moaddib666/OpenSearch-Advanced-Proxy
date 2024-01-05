@@ -3,6 +3,7 @@ module OpenSearchAdvancedProxy
 go 1.20
 
 require (
+	github.com/ClickHouse/clickhouse-go v1.5.4
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/prometheus/client_golang v1.18.0
@@ -13,6 +14,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
