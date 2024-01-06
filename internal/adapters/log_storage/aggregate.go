@@ -10,11 +10,11 @@ type AggregateStorage struct {
 	name              string
 	storages          []ports.Storage
 	fields            *models.Fields
-	aggregatorFactory ports.SearchAggregatorFactory
+	aggregatorFactory ports.SearchAggregateFactory
 }
 
 // NewAggregateStorage - create a new AggregateStorage
-func NewAggregateStorage(name string, storages []ports.Storage, fields *models.Fields, aggregatorFactory ports.SearchAggregatorFactory) *AggregateStorage {
+func NewAggregateStorage(name string, storages []ports.Storage, fields *models.Fields, aggregatorFactory ports.SearchAggregateFactory) *AggregateStorage {
 	return &AggregateStorage{
 		name:              name,
 		storages:          storages,
@@ -44,7 +44,7 @@ func (a *AggregateStorage) Search(r *models.SearchRequest) (*models.SearchResult
 		// TODO: In case of performance issues, we can use a pool of goroutines here
 		store := storage
 		go func() {
-			log.Debugf("Searching in storage %s, %s", store.Name(), r)
+			log.Debugf("Searching in storage %s, %+v", store.Name(), r)
 			result, err := store.Search(r)
 			if err != nil {
 				return

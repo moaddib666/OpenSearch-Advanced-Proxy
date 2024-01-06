@@ -106,9 +106,7 @@ func (server *WebSocketServer) Run(ctx context.Context) {
 			go client.Listen() // Start listening for close event
 		case client := <-server.Unregister:
 			server.Mutex.Lock()
-			if _, ok := server.Clients[client]; ok {
-				delete(server.Clients, client)
-			}
+			delete(server.Clients, client)
 			server.Mutex.Unlock()
 		case <-ctx.Done():
 			return // Stop the server when context is canceled

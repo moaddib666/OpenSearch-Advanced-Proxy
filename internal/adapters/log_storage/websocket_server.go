@@ -101,11 +101,11 @@ type WebsocketServerStorage struct {
 	server            ports.WebsocketServer
 	processor         ports.DistributedRequestsProcessor
 	protocol          ports.DistributedSearchProtocol
-	aggregatorFactory ports.SearchAggregatorFactory
+	aggregatorFactory ports.SearchAggregateFactory
 }
 
 // NewWebsocketServerStorage creates a new WebsocketServerStorage struct
-func NewWebsocketServerStorage(name string, fields *models.Fields, server ports.WebsocketServer, processor ports.DistributedRequestsProcessor, proto ports.DistributedSearchProtocol, aggregator ports.SearchAggregatorFactory) *WebsocketServerStorage {
+func NewWebsocketServerStorage(name string, fields *models.Fields, server ports.WebsocketServer, processor ports.DistributedRequestsProcessor, proto ports.DistributedSearchProtocol, aggregator ports.SearchAggregateFactory) *WebsocketServerStorage {
 	// TODO create composite for args
 	return &WebsocketServerStorage{
 		name:              name,
@@ -136,7 +136,11 @@ func (w *WebsocketServerStorage) Search(r *models.SearchRequest) (*models.Search
 	w.processor.ResponseExpected(id, awaitCount)
 	aggregate := w.aggregatorFactory.CreateAggregator(r, nil)
 	for result := range callback {
-		log.Debugf("Got result from %+v", result)
+		if result == nil {
+			log.Errorf("Got nil result from %s", w.name)
+			continue
+		}
+		log.Debugf("Got result from %s shard, %+v", w.name, result)
 		aggregate.AddResult(result)
 	}
 	// TODO context with timeout for waiting responses 5 minutes

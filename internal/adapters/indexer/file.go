@@ -67,6 +67,9 @@ func (j *JsonFileIndexer) CreateIndex() error {
 	var position int64
 	scanner := bufio.NewScanner(file)
 	err = j.index(scanner, lastTimestamp, position)
+	if err != nil {
+		return err
+	}
 	log.Infof("Indexing complete, saving index %s", j.file+".index")
 	return j.SaveIndex()
 }

@@ -67,8 +67,13 @@ func (s *SQLDatabaseProvider) BeginScan(r *models.SearchRequest) {
 	s.filterQuery, err = s.queryBuilder.FromQuery(r.Query)
 	if err != nil {
 		log.Errorf("Error while building query: %s", err)
+		return
 	}
 	sqlString, err := s.filterQuery.BuildQuery()
+	if err != nil {
+		log.Errorf("Error while building query: %s", err)
+		return
+	}
 	// FIXME: Extarnal base query
 	baseQuery := fmt.Sprintf("SELECT * FROM %s WHERE %s", s.table, sqlString)
 	limitedBaseQuery := fmt.Sprintf("%s LIMIT %d", baseQuery, r.Size)
@@ -137,15 +142,11 @@ func (s *SQLDatabaseProvider) EndScan() {
 
 func (s *SQLDatabaseProvider) AggregateResult(request *models.SearchAggregation) *models.AggregationResult {
 	// TODO: Create sepparate abstraction for this as it could changed from DB to DB
-	result := &models.AggregationResult{
-		Buckets: make([]*models.Bucket, 0),
-	}
+	result := models.NewAggregationResult()
 	if request.DateHistogram == nil {
 		return result
 	}
 	// TODO: make supoort for other databases not on clickhouse
-	//interval := request.DateHistogram.Interval
-	// TODO: add resolve interval
 	var interval string
 	err := s.intervalParser.Parse(request.DateHistogram, &interval)
 	if err != nil {

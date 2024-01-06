@@ -9,93 +9,28 @@ import (
 )
 
 type LogSearchEngine struct {
-	provider      ports.SearchDataProvider
-	filterFactory *FilterFactory
-	convertor     ports.LogEntryConvertor
-	aggregation   ports.SearchAggregatorFactory
-	tracker       ports.TimeTracker
-}
-
-type LogSearchResult struct {
-	matchCount        int
-	filtersCount      int
-	excluded          bool
-	timeRangeExcluded bool
-	outOfTimeRange    bool
-}
-
-// Found - set logSearchResult.found to true
-func (lsr *LogSearchResult) Found() {
-	lsr.matchCount = lsr.filtersCount
-}
-
-func (lsr *LogSearchResult) Match() {
-	lsr.matchCount += 1
-}
-
-// IsFound - return logSearchResult.found
-func (lsr *LogSearchResult) IsFound() bool {
-	// found is valid found len == filters len
-
-	return lsr.matchCount >= lsr.filtersCount && !lsr.excluded && !lsr.timeRangeExcluded
-}
-
-// Exclude - set logSearchResult.excluded to true
-func (lsr *LogSearchResult) Exclude() {
-	lsr.excluded = true
-}
-
-// TimeRangeExcluded - set logSearchResult.timeRangeExcluded to true
-func (lsr *LogSearchResult) TimeRangeExcluded() {
-	lsr.timeRangeExcluded = true
-}
-
-// IsTimeRangeExcluded - return logSearchResult.timeRangeExcluded
-func (lsr *LogSearchResult) IsTimeRangeExcluded() bool {
-	return lsr.timeRangeExcluded
-}
-
-// OutOfTimeRange - set logSearchResult.outOfTimeRange to true
-func (lsr *LogSearchResult) OutOfTimeRange() {
-	lsr.outOfTimeRange = true
-}
-
-// IsOutOfTimeRange - return true if logSearchResult.timeRangeExcluded is true
-func (lsr *LogSearchResult) IsOutOfTimeRange() bool {
-	return lsr.outOfTimeRange
-}
-
-// NewLogSearchResult - create a new logSearchResult
-func NewLogSearchResult(filtersCount int) *LogSearchResult {
-	return &LogSearchResult{
-		matchCount:        0,
-		excluded:          false,
-		timeRangeExcluded: false,
-		filtersCount:      filtersCount,
-	}
+	provider    ports.SearchDataProvider
+	convertor   ports.LogEntryConvertor
+	aggregation ports.SearchAggregateFactory
+	tracker     ports.TimeTracker
 }
 
 // NewLogSearchEngine - create a new LogSearchEngine
-func NewLogSearchEngine(provider ports.SearchDataProvider, conv ports.LogEntryConvertor, aggregation ports.SearchAggregatorFactory) *LogSearchEngine {
+func NewLogSearchEngine(provider ports.SearchDataProvider, conv ports.LogEntryConvertor, aggregation ports.SearchAggregateFactory) *LogSearchEngine {
 	return &LogSearchEngine{
-		provider:      provider,
-		filterFactory: NewFilterFactory(),
-		convertor:     conv,
-		tracker:       tracker.NewDefaultTimeTracker(),
-		aggregation:   aggregation,
+		provider:    provider,
+		convertor:   conv,
+		tracker:     tracker.NewDefaultTimeTracker(),
+		aggregation: aggregation,
 	}
 }
 
 func (s *LogSearchEngine) ProcessSearch(ctx context.Context, request *models.SearchRequest) (*models.SearchResult, error) {
 	hits := models.NewHits()
-	rg := request.GetRange()
 	s.tracker.Start()
 	s.provider.BeginScan(request)
 	defer s.provider.EndScan()
-	filter, err := s.filterFactory.FromQuery(request.Query)
-	if err != nil {
-		return nil, err
-	}
+	// FIXME: Remove not needed code
 SearchLoop:
 	for s.provider.Scan() {
 		entry := s.provider.LogEntry()
@@ -108,15 +43,6 @@ SearchLoop:
 			continue // FIXME: raise condition if all next entries are not converted deadline exceeded will not be raised
 		}
 		hits.AddHit(hit)
-		// Performance optimization: skip entries that are outside the time range before applying filters
-		if entry.Timestamp().Before(rg.DateTime.GTE) {
-			//log.Debugf("Entry %s is before range %s", entry.Timestamp(), rg.DateTime.GTE)
-			continue
-		}
-		if entry.Timestamp().After(rg.DateTime.LTE) {
-			//log.Debugf("Entry %s is after range %s", entry.Timestamp(), rg.DateTime.LTE)
-			break
-		}
 		select {
 		case <-ctx.Done():
 			log.Warnf("Search request canceled as timeout reached")
@@ -124,9 +50,7 @@ SearchLoop:
 		default:
 			// do nothing
 		}
-		if !filter.Match(entry) {
-			continue
-		}
+
 	}
 	s.tracker.Stop()
 	successShardCount := 0

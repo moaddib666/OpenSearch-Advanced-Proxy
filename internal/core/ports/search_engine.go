@@ -14,7 +14,9 @@ type SearchFilter interface {
 }
 
 type SearchFilterFactory interface {
-	NewFilter(filter *models.Filter) (SearchFilter, error)
+	CreateFilter(filter *models.Filter) (SearchFilter, error)
+	CreateBoolFilter(filter *models.BoolFilter) (SearchFilter, error)
+	FromQuery(query *models.Query) (SearchFilter, error)
 }
 
 type QueryBuilder interface {

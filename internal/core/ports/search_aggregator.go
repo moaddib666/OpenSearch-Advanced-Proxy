@@ -21,7 +21,7 @@ type SearchAggregator interface {
 	GetResult() *models.SearchResult
 }
 
-type SearchAggregatorFactory interface {
+type SearchAggregateFactory interface {
 	// CreateAggregator creates a new aggregator
 	CreateAggregator(request *models.SearchRequest, provider SearchMetadataProvider) SearchAggregator
 }

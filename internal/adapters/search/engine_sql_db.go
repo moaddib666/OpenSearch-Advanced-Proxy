@@ -11,12 +11,12 @@ import (
 type SQLDBSearchEngine struct {
 	provider    ports.SearchDataProvider
 	convertor   ports.LogEntryConvertor
-	aggregation ports.SearchAggregatorFactory
+	aggregation ports.SearchAggregateFactory
 	tracker     ports.TimeTracker
 }
 
 // NewSQLDBSearchEngine - create a new SQLDBSearchEngine
-func NewSQLDBSearchEngine(provider ports.SearchDataProvider, conv ports.LogEntryConvertor, aggregation ports.SearchAggregatorFactory) *SQLDBSearchEngine {
+func NewSQLDBSearchEngine(provider ports.SearchDataProvider, conv ports.LogEntryConvertor, aggregation ports.SearchAggregateFactory) *SQLDBSearchEngine {
 	return &SQLDBSearchEngine{
 		provider:    provider,
 		convertor:   conv,

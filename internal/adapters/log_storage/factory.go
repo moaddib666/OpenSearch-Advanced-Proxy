@@ -5,7 +5,8 @@ import (
 	"OpenSearchAdvancedProxy/internal/adapters/indexer"
 	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
 	"OpenSearchAdvancedProxy/internal/adapters/search"
-	"OpenSearchAdvancedProxy/internal/adapters/search/aggragation"
+	"OpenSearchAdvancedProxy/internal/adapters/search/aggregate"
+	"OpenSearchAdvancedProxy/internal/adapters/search/search_internval"
 	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
@@ -60,6 +61,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 				log.Fatalf("Error loading index: %s", err.Error())
 			}
 		}
+
 		provider := log_provider.NewLogFileProvider(config.LogFile,
 			func() ports.LogEntry {
 				return &log_provider.JsonLogEntry{
@@ -67,10 +69,11 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 				}
 			},
 			idx,
+			search_internval.NewTimeDurationIntervalParser(),
+			search.NewFilterFactory(),
 		)
 		entryConvertor := convertor.NewDefaultLogEntryConvertor(name)
-		// FIXME: add aggregator factory
-		aggregatorFactory := aggragation.NewNoAggregationFactory()
+		aggregatorFactory := aggregate.NewSingleResultAggregateFactory()
 		engine := search.NewLogSearchEngine(provider, entryConvertor, aggregatorFactory)
 		return NewGenericStorage(name, fields, engine), nil
 	case models.WebSocketProvider:
@@ -86,7 +89,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 		eventProcessor := NewEventProcessor(proto)
 		server := websockets.NewWebSocketServer(config.BindAddress, eventProcessor)
 		go server.Run(b.ctx)
-		aggregatorFactory := aggragation.NewAggregatorFactory() // FIXME: crate more specific factory
+		aggregatorFactory := aggregate.NewMultiResultAggregateFactory()
 		return NewWebsocketServerStorage(name, fields, server, eventProcessor, proto, aggregatorFactory), nil
 	case models.ClickhouseProvider:
 		config := &models.ClickhouseProviderConfig{}
@@ -111,8 +114,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 			return log_provider.SqlLogEntryConstructor()
 		})
 		entryConvertor := convertor.NewDefaultLogEntryConvertor(name)
-		// FIXME: add aggregator factory
-		aggregatorFactory := aggragation.NewSQLDatabaseAggregatorFactory()
+		aggregatorFactory := aggregate.NewSingleResultAggregateFactory()
 		engine := search.NewSQLDBSearchEngine(provider, entryConvertor, aggregatorFactory)
 		return NewGenericStorage(name, fields, engine), nil
 	case models.AggregateProvider:
@@ -129,7 +131,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 			}
 			storages[i] = storage
 		}
-		aggregatorFactory := aggragation.NewAggregatorFactory() // FIXME: crate more specific factory
+		aggregatorFactory := aggregate.NewMultiResultAggregateFactory()
 		return NewAggregateStorage(name, storages, fields, aggregatorFactory), nil
 	}
 	return nil, models.ErrUnsupportedProvider

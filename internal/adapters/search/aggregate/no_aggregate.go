@@ -1,4 +1,4 @@
-package aggragation
+package aggregate
 
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"

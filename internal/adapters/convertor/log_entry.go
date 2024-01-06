@@ -16,11 +16,7 @@ func NewDefaultLogEntryConvertor(index string) *DefaultLogEntryConvertor {
 }
 
 func (d *DefaultLogEntryConvertor) Convert(entry ports.LogEntry) (*models.Hit, error) {
-	return &models.Hit{
-		ID:     entry.ID(),
-		Index:  d.Index,
-		Source: entry.Map(),
-	}, nil
+	return models.NewHit(d.Index, entry.ID(), entry.Map(), entry.Timestamp()), nil
 }
 
 func (d *DefaultLogEntryConvertor) ConvertBatch(entries []ports.LogEntry) (*models.Hits, error) {

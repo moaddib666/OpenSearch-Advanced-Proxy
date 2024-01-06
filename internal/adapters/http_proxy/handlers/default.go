@@ -35,10 +35,10 @@ func DefaultHandler(dest string) http.HandlerFunc {
 		defer resp.Body.Close()
 		responseBody, _ := io.ReadAll(resp.Body)
 		// ignore _nodes requests
-		if r.URL.Path != "/_nodes" {
-			//log.Debugf("Request Body: %s", string(requestBody))
-			//log.Debugf("Response Body: %s", string(responseBody))
-		}
+		//if r.URL.Path != "/_nodes" {
+		//	log.Debugf("Request Body: %s", string(requestBody))
+		//	log.Debugf("Response Body: %s", string(responseBody))
+		//}
 		// Write the response back to the original client
 		for key, value := range resp.Header {
 			w.Header().Set(key, strings.Join(value, ", "))

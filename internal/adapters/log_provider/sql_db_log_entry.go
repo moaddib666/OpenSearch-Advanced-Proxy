@@ -6,9 +6,7 @@ import (
 )
 
 type SQLDBLogEntry struct {
-	fieldsMap    map[string]interface{}
-	columnsSlice []interface{}
-	columnsPtrs  []interface{}
+	fieldsMap map[string]interface{}
 }
 
 func (S *SQLDBLogEntry) Raw() string {

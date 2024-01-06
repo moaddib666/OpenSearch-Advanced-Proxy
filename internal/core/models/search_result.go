@@ -48,7 +48,6 @@ func (h *Hits) AddHit(hit *Hit) {
 	if h.Total == nil {
 		h.Total = &TotalValue{}
 	}
-	h.Total.Value++
 }
 
 // NewHits creates a new Hits struct
@@ -75,10 +74,46 @@ type Hit struct {
 	Fields interface{}            `json:"fields,omitempty"`
 	Sort   HitSort                `json:"sort,omitempty"`
 }
+
+// NewHit creates a new Hit struct
+func NewHit(index, id string, source map[string]interface{}, ts time.Time) *Hit {
+	hit := &Hit{
+		Index:  index,
+		ID:     id,
+		Source: source,
+		Sort: []int{
+			int(ts.Unix()),
+		},
+	}
+	return hit
+}
+
+// IsBeforeHit returns true if hit is before the given hit
+func (h *Hit) IsBeforeHit(hit *Hit) bool {
+	if len(h.Sort) == 0 || len(hit.Sort) == 0 {
+		return false
+	}
+	return h.Sort[0] < hit.Sort[0]
+}
+
+// IsAfterHit returns true if hit is after the given hit
+func (h *Hit) IsAfterHit(hit *Hit) bool {
+	if len(h.Sort) == 0 || len(hit.Sort) == 0 {
+		return false
+	}
+	return h.Sort[0] > hit.Sort[0]
+}
+
 type HitSort []int
 
 type AggregationResult struct {
 	Buckets []*Bucket `json:"buckets"`
+}
+
+func NewAggregationResult() *AggregationResult {
+	return &AggregationResult{
+		Buckets: make([]*Bucket, 0),
+	}
 }
 
 func (ar *AggregationResult) AddBucket(bucket *Bucket) {
@@ -97,6 +132,18 @@ type Bucket struct {
 	KeyAsString string `json:"key_as_string"`
 	Key         int64  `json:"key"`
 	DocCount    int    `json:"doc_count"`
+}
+
+func NewBucket() *Bucket {
+	return &Bucket{}
+}
+
+func (b *Bucket) HasDocs() bool {
+	return b.DocCount > 0
+}
+
+func (b *Bucket) AddDoc() {
+	b.DocCount++
 }
 
 func (b *Bucket) FromTime(t time.Time) {
