@@ -54,6 +54,18 @@ type AggregationResult struct {
 	Buckets []*Bucket `json:"buckets"`
 }
 
+func (ar *AggregationResult) AddBucket(bucket *Bucket) {
+	ar.Buckets = append(ar.Buckets, bucket)
+}
+
+func (ar *AggregationResult) DocsCount() int {
+	count := 0
+	for _, bucket := range ar.Buckets {
+		count += bucket.DocCount
+	}
+	return count
+}
+
 type Bucket struct {
 	KeyAsString string `json:"key_as_string"`
 	Key         int64  `json:"key"`

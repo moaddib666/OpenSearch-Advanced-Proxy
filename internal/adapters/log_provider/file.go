@@ -87,6 +87,10 @@ func (f *LogFileProvider) close() {
 	f.scanner = nil
 }
 
+func (f *LogFileProvider) SearchMetadata() *models.OngoingSearchMetadata {
+	return nil
+}
+
 // NewLogFileProvider creates a new LogFileProvider struct
 func NewLogFileProvider(filePath string, constructor ports.EntryConstructor, indexer ports.Indexer) *LogFileProvider {
 	return &LogFileProvider{

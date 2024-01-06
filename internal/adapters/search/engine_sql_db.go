@@ -4,6 +4,7 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 )
@@ -42,6 +43,10 @@ func (s *SQLDBSearchEngine) ProcessSearch(ctx context.Context, request *models.S
 	if err := s.provider.Err(); err != nil {
 		return nil, err
 	}
-
+	metadata := s.provider.SearchMetadata()
+	if metadata != nil {
+		jsonMetadata, _ := json.Marshal(metadata)
+		log.Infof("Search metadata: %s", string(jsonMetadata))
+	}
 	return matchingLines, nil
 }

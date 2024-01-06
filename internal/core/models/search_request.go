@@ -35,12 +35,12 @@ func (r *SearchRequest) GetSortOrder() (*SortOrder, error) {
 	return r.Sort[0][docValueField], nil
 }
 
-// SearchAggregation represents the overall structure of an OpenSearch aggregation
+// SearchAggregation represents the overall structure of an OpenSearch Aggregation
 type SearchAggregation struct {
 	DateHistogram *DateHistogram `json:"date_histogram"`
 }
 
-// DateHistogram represents the overall structure of an OpenSearch date_histogram aggregation
+// DateHistogram represents the overall structure of an OpenSearch date_histogram Aggregation
 type DateHistogram struct {
 	Field       string `json:"field"`
 	Interval    string `json:"fixed_interval"`

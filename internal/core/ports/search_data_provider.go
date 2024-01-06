@@ -9,4 +9,5 @@ type SearchDataProvider interface {
 	Err() error
 	LogEntry() LogEntry
 	EndScan()
+	SearchMetadata() *models.OngoingSearchMetadata
 }

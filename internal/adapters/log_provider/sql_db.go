@@ -8,6 +8,7 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go"
 	log "github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 type SQLDatabaseProvider struct {
@@ -130,6 +131,38 @@ func (s *SQLDatabaseProvider) EndScan() {
 	s.rows = nil
 }
 
-//func (s *SQLDatabaseProvider) Metadata() *models.Metadata {
-//	panic("implement me")
-//}
+func (s *SQLDatabaseProvider) SearchMetadata() *models.OngoingSearchMetadata {
+	// TODO: Create sepparate abstraction for this as it could changed from DB to DB
+	meta := &models.OngoingSearchMetadata{
+		Aggregation: &models.AggregationResult{
+			Buckets: make([]*models.Bucket, 0),
+		},
+	}
+	interval := "1 HOUR"
+	baseQuery := fmt.Sprintf(fmt.Sprintf(`
+	SELECT
+	   toStartOfInterval(dateTime, INTERVAL %s) AS interval,
+	   count() AS count
+	FROM %s
+	GROUP BY interval
+	ORDER BY interval
+	`, interval, s.table))
+	log.Debugf("Query Metadata: %s", baseQuery)
+	rows, err := s.db.Query(baseQuery)
+	if err != nil {
+		log.Debugf("Error while querying database: %s", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var ts time.Time
+		bucket := &models.Bucket{}
+		err := rows.Scan(&ts, &bucket.DocCount)
+		if err != nil {
+			log.Warnf("Error while scanning row: %s", err)
+		}
+		bucket.KeyAsString = ts.Format(time.RFC3339)
+		bucket.Key = ts.Unix()
+		meta.Aggregation.AddBucket(bucket)
+	}
+	return meta
+}

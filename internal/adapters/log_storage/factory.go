@@ -94,9 +94,13 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 			return nil, models.ErrNoClickhouseDSN
 		}
 		var searchableFields []string
-		for fieldName := range fields.Fields {
+		for fieldName, fieldDetails := range fields.Fields {
 			// Note: currently support of flag isSearchable
-			searchableFields = append(searchableFields, fieldName)
+			for fieldType, field := range fieldDetails {
+				if fieldType == models.TextType && field.Searchable {
+					searchableFields = append(searchableFields, fieldName)
+				}
+			}
 		}
 		factory := search.NewSQLQueryBuilderFactory(searchableFields, timestampField)
 		provider := log_provider.NewClickhouseProvider(config.DSN, config.Table, factory, func() ports.LogEntry {
