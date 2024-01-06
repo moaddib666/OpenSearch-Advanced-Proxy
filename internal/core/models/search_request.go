@@ -42,10 +42,11 @@ type SearchAggregation struct {
 
 // DateHistogram represents the overall structure of an OpenSearch date_histogram Aggregation
 type DateHistogram struct {
-	Field       string `json:"field"`
-	Interval    string `json:"fixed_interval"`
-	TimeZone    string `json:"time_zone"`
-	MinDocCount int    `json:"min_doc_count"`
+	Field            string `json:"field"`
+	Interval         string `json:"fixed_interval"`
+	CalendarInterval string `json:"calendar_interval"`
+	TimeZone         string `json:"time_zone"`
+	MinDocCount      int    `json:"min_doc_count"`
 }
 
 // SortOrder represents sorting options

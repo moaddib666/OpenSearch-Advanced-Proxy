@@ -1,8 +1,10 @@
 package log_storage
 
 import (
+	"OpenSearchAdvancedProxy/internal/adapters/convertor"
 	"OpenSearchAdvancedProxy/internal/adapters/indexer"
 	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
+	"OpenSearchAdvancedProxy/internal/adapters/log_storage/aggragation"
 	"OpenSearchAdvancedProxy/internal/adapters/search"
 	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"OpenSearchAdvancedProxy/internal/core/models"
@@ -40,8 +42,6 @@ func (b *BaseStorageFactory) FromConfig(name string, config *models.SubConfig) (
 // createStorage - create a storage from a config
 func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig, fields *models.Fields, timestampField string) (ports.Storage, error) {
 
-	aggregatorFactory := search.NewAggregatorFactory()
-
 	switch cfg.GetProvider() {
 	case models.JsonLogFileProvider:
 		config := &models.JsonLogFileProviderConfig{}
@@ -68,7 +68,10 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 			},
 			idx,
 		)
-		engine := search.NewLogSearchEngine(provider)
+		entryConvertor := convertor.NewDefaultLogEntryConvertor(name)
+		// FIXME: add aggregator factory
+		aggregatorFactory := aggragation.NewNoAggregationFactory()
+		engine := search.NewLogSearchEngine(provider, entryConvertor, aggregatorFactory)
 		return NewGenericStorage(name, fields, engine), nil
 	case models.WebSocketProvider:
 		config := &models.WebSocketProviderConfig{}
@@ -83,6 +86,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 		eventProcessor := NewEventProcessor(proto)
 		server := websockets.NewWebSocketServer(config.BindAddress, eventProcessor)
 		go server.Run(b.ctx)
+		aggregatorFactory := aggragation.NewAggregatorFactory() // FIXME: crate more specific factory
 		return NewWebsocketServerStorage(name, fields, server, eventProcessor, proto, aggregatorFactory), nil
 	case models.ClickhouseProvider:
 		config := &models.ClickhouseProviderConfig{}
@@ -106,7 +110,10 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 		provider := log_provider.NewClickhouseProvider(config.DSN, config.Table, factory, func() ports.LogEntry {
 			return log_provider.SqlLogEntryConstructor()
 		})
-		engine := search.NewSQLDBSearchEngine(provider)
+		entryConvertor := convertor.NewDefaultLogEntryConvertor(name)
+		// FIXME: add aggregator factory
+		aggregatorFactory := aggragation.NewSQLDatabaseAggregatorFactory()
+		engine := search.NewSQLDBSearchEngine(provider, entryConvertor, aggregatorFactory)
 		return NewGenericStorage(name, fields, engine), nil
 	case models.AggregateProvider:
 		config := &models.AggregateProviderConfig{}
@@ -122,6 +129,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 			}
 			storages[i] = storage
 		}
+		aggregatorFactory := aggragation.NewAggregatorFactory() // FIXME: crate more specific factory
 		return NewAggregateStorage(name, storages, fields, aggregatorFactory), nil
 	}
 	return nil, models.ErrUnsupportedProvider

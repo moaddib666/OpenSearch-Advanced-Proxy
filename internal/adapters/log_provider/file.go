@@ -87,7 +87,7 @@ func (f *LogFileProvider) close() {
 	f.scanner = nil
 }
 
-func (f *LogFileProvider) SearchMetadata() *models.OngoingSearchMetadata {
+func (f *LogFileProvider) AggregateResult(request *models.SearchAggregation) *models.AggregationResult {
 	return nil
 }
 

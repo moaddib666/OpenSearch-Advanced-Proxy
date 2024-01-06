@@ -18,7 +18,6 @@ func SearchHandler(storage ports.Storage) http.HandlerFunc {
 		request := &models.SearchRequest{}
 		err := json.Unmarshal(requestBody, request)
 		log.Debugf("Request body: %s", string(requestBody))
-		log.Infof("Request body: %s", string(requestBody))
 		if err != nil {
 			log.Errorf("error unmarshalling request: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

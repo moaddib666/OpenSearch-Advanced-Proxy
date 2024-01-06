@@ -4,7 +4,6 @@ import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -36,44 +35,9 @@ func (f *GenericStorage) Fields() *models.Fields {
 func (f *GenericStorage) Search(r *models.SearchRequest) (*models.SearchResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), f.searchTTL)
 	defer cancel()
-	start := time.Now()
 	found, err := f.engine.ProcessSearch(ctx, r)
-	timeTaken := int(time.Since(start).Milliseconds())
 	if err != nil {
-		log.Errorf("Error processing search: %s, took: %d nanoseconds", err.Error(), timeTaken)
+		return nil, err
 	}
-	count := len(found)
-	hits := make([]*models.Hit, count)
-	for i, entry := range found {
-		hits[i] = &models.Hit{
-			ID:     entry.ID(),
-			Index:  f.name,
-			Source: entry.Map(),
-		}
-	}
-
-	successShardCount := 0
-	failedShardCount := 0
-	timeout := ctx.Err() != nil
-	if !timeout {
-		successShardCount = 1
-	} else {
-		failedShardCount = 1
-	}
-	return &models.SearchResult{
-		Took:     timeTaken,
-		TimedOut: timeout,
-		Shards: &models.Shards{
-			Total:      1,
-			Successful: successShardCount,
-			Skipped:    0,
-			Failed:     failedShardCount,
-		},
-		Hits: &models.Hits{
-			Total: &models.TotalValue{
-				Value: count,
-			},
-			Hits: hits,
-		},
-	}, nil
+	return found, nil
 }

@@ -1,5 +1,10 @@
 package models
 
+import (
+	"fmt"
+	"time"
+)
+
 // SearchResult is a struct that represents the result of a search query
 type SearchResult struct {
 	Took         int                           `json:"took"`
@@ -32,6 +37,28 @@ type Hits struct {
 	Total    *TotalValue `json:"total"`
 	MaxScore float64     `json:"max_score"`
 	Hits     []*Hit      `json:"hits"`
+}
+
+// AddHit adds a hit to the Hits struct
+func (h *Hits) AddHit(hit *Hit) {
+	h.Hits = append(h.Hits, hit)
+	if hit.Score > h.MaxScore {
+		h.MaxScore = hit.Score
+	}
+	if h.Total == nil {
+		h.Total = &TotalValue{}
+	}
+	h.Total.Value++
+}
+
+// NewHits creates a new Hits struct
+func NewHits() *Hits {
+	return &Hits{
+		Hits: make([]*Hit, 0),
+		Total: &TotalValue{
+			Value: 0,
+		},
+	}
 }
 
 type TotalValue struct {
@@ -70,4 +97,12 @@ type Bucket struct {
 	KeyAsString string `json:"key_as_string"`
 	Key         int64  `json:"key"`
 	DocCount    int    `json:"doc_count"`
+}
+
+func (b *Bucket) FromTime(t time.Time) {
+	b.Key = t.UnixMilli()
+	b.KeyAsString = t.Format(time.RFC3339)
+}
+func (b *Bucket) String() string {
+	return fmt.Sprintf("Bucket: %s, %d", b.KeyAsString, b.DocCount)
 }

@@ -36,7 +36,7 @@ func (a *AggregateStorage) Search(r *models.SearchRequest) (*models.SearchResult
 		return nil, models.ErrNoStorages
 	}
 	found := make(chan *models.SearchResult, len(a.storages))
-	aggregator := a.aggregatorFactory.CreateAggregator(r)
+	aggregator := a.aggregatorFactory.CreateAggregator(r, nil)
 	for _, storage := range a.storages {
 		if storage == nil {
 			log.Fatalf("Found nil storage in %s", a.name)

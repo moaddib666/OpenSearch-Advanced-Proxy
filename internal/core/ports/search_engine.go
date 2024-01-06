@@ -6,7 +6,7 @@ import (
 )
 
 type SearchEngine interface {
-	ProcessSearch(ctx context.Context, request *models.SearchRequest) ([]LogEntry, error)
+	ProcessSearch(ctx context.Context, request *models.SearchRequest) (*models.SearchResult, error)
 }
 
 type SearchFilter interface {

@@ -1,4 +1,4 @@
-package search
+package aggragation
 
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// TimeIntervalAggregator is an implementation of Aggregator that aggregates data into time intervals.
+// TimeIntervalAggregator is an implementation of FileLogAggregator that aggregates data into time intervals.
 type TimeIntervalAggregator struct {
 	FixedInterval string
 	Field         string
@@ -124,13 +124,10 @@ func (t *TimeIntervalAggregator) Aggregate(hits []*models.Hit) *models.Aggregati
 
 	// Function to create a new bucket
 	createNewBucket := func(t time.Time) {
-		key := t.UnixMilli()
-		keyAsString := t.Format(time.RFC3339)
 		currentBucket = &models.Bucket{
-			KeyAsString: keyAsString,
-			Key:         key,
-			DocCount:    0,
+			DocCount: 0,
 		}
+		currentBucket.FromTime(t)
 		buckets = append(buckets, currentBucket)
 	}
 
@@ -183,8 +180,7 @@ func NewHitAggregatorFactory() *TimeIntervalAggregatorFactory {
 	return &TimeIntervalAggregatorFactory{}
 }
 
-// FIXME - Rename this to search processor
-type Aggregator struct {
+type FileLogAggregator struct {
 	request       *models.SearchRequest
 	result        *models.SearchResult
 	searchResults []*models.SearchResult
@@ -194,8 +190,8 @@ type Aggregator struct {
 }
 
 // NewAggregator creates a new aggregator
-func NewAggregator(request *models.SearchRequest, aggr ports.SearchHitAggregatorFactory) *Aggregator {
-	return &Aggregator{
+func NewAggregator(request *models.SearchRequest, aggr ports.SearchHitAggregatorFactory) *FileLogAggregator {
+	return &FileLogAggregator{
 		searchResults: make([]*models.SearchResult, 0),
 		mux:           &sync.Mutex{},
 		request:       request,
@@ -211,7 +207,7 @@ func NewAggregator(request *models.SearchRequest, aggr ports.SearchHitAggregator
 	}
 }
 
-func (a *Aggregator) AddResult(result *models.SearchResult) {
+func (a *FileLogAggregator) AddResult(result *models.SearchResult) {
 	a.mux.Lock()
 	a.searchResults = append(a.searchResults, result)
 	a.mux.Unlock()
@@ -246,7 +242,7 @@ func parseHitTime(hit *models.Hit, fieldName string) (time.Time, error) {
 }
 
 // Sort sorts the hits by request parameters
-func (a *Aggregator) Sort() {
+func (a *FileLogAggregator) Sort() {
 	// TODO add sort abstraction
 	if a.request.Sort == nil || len(a.request.Sort) == 0 {
 		return
@@ -278,7 +274,7 @@ func (a *Aggregator) Sort() {
 }
 
 // Aggregate fill in the aggregations
-func (a *Aggregator) Aggregate() {
+func (a *FileLogAggregator) Aggregate() {
 	for name, settings := range a.request.Aggregations {
 		log.Debugf("Aggregating %s, %+v", name, settings.DateHistogram)
 		aggr := a.aggr.CreateAggregator(settings)
@@ -286,7 +282,7 @@ func (a *Aggregator) Aggregate() {
 	}
 }
 
-func (a *Aggregator) GetResult() *models.SearchResult {
+func (a *FileLogAggregator) GetResult() *models.SearchResult {
 	a.mux.Lock()
 	defer a.mux.Unlock()
 	took := 0
@@ -330,7 +326,7 @@ func (a *Aggregator) GetResult() *models.SearchResult {
 type AggregatorFactory struct {
 }
 
-func (a *AggregatorFactory) CreateAggregator(request *models.SearchRequest) ports.SearchAggregator {
+func (a *AggregatorFactory) CreateAggregator(request *models.SearchRequest, provider ports.SearchMetadataProvider) ports.SearchAggregator {
 	return NewAggregator(request, NewHitAggregatorFactory())
 }
 

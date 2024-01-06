@@ -23,5 +23,5 @@ type SearchAggregator interface {
 
 type SearchAggregatorFactory interface {
 	// CreateAggregator creates a new aggregator
-	CreateAggregator(request *models.SearchRequest) SearchAggregator
+	CreateAggregator(request *models.SearchRequest, provider SearchMetadataProvider) SearchAggregator
 }

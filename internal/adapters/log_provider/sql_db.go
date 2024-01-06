@@ -1,6 +1,7 @@
 package log_provider
 
 import (
+	"OpenSearchAdvancedProxy/internal/adapters/search/search_internval"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"database/sql"
@@ -19,15 +20,18 @@ type SQLDatabaseProvider struct {
 	columns          []string
 	err              error
 	mux              sync.Mutex
+	filterQuery      ports.QueryBuilder
 	entryConstructor ports.EntryConstructor
+	intervalParser   ports.SearchInternalParser
 }
 
-func NewSQLDatabaseProvider(queryBuilder ports.QueryBuilderFactory, db *sql.DB, table string, entryConstructor ports.EntryConstructor) *SQLDatabaseProvider {
+func NewSQLDatabaseProvider(queryBuilder ports.QueryBuilderFactory, db *sql.DB, table string, entryConstructor ports.EntryConstructor, iparser ports.SearchInternalParser) *SQLDatabaseProvider {
 	return &SQLDatabaseProvider{
 		queryBuilder:     queryBuilder,
 		db:               db,
 		table:            table,
 		entryConstructor: entryConstructor,
+		intervalParser:   iparser,
 	}
 }
 
@@ -36,7 +40,7 @@ func NewClickhouseProvider(dsn, table string, queryBuilder ports.QueryBuilderFac
 	if err != nil {
 		log.Fatalf("Error while opening database: %s", err)
 	}
-	return NewSQLDatabaseProvider(queryBuilder, db, table, entryConstructor)
+	return NewSQLDatabaseProvider(queryBuilder, db, table, entryConstructor, search_internval.NewClickHouseSearchIntervalParser())
 }
 
 func (s *SQLDatabaseProvider) Text() string {
@@ -57,19 +61,19 @@ func (s *SQLDatabaseProvider) Err() error {
 }
 
 func (s *SQLDatabaseProvider) BeginScan(r *models.SearchRequest) {
+	var err error
 	s.mux.Lock()
 	log.Debugf("SQLDatabaseProvider scan started")
-	query, err := s.queryBuilder.FromQuery(r.Query)
+	s.filterQuery, err = s.queryBuilder.FromQuery(r.Query)
 	if err != nil {
 		log.Errorf("Error while building query: %s", err)
 	}
-	sqlString, err := query.BuildQuery()
+	sqlString, err := s.filterQuery.BuildQuery()
 	// FIXME: Extarnal base query
 	baseQuery := fmt.Sprintf("SELECT * FROM %s WHERE %s", s.table, sqlString)
-	//limitedBaseQuery := fmt.Sprintf("%s LIMIT %d", baseQuery, r.Size)
-	//countQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", s.table, sqlString)
-	log.Infof("Query: %s", baseQuery)
-	s.rows, err = s.db.Query(baseQuery)
+	limitedBaseQuery := fmt.Sprintf("%s LIMIT %d", baseQuery, r.Size)
+	log.Debugf("Query for Hits: %s", limitedBaseQuery)
+	s.rows, err = s.db.Query(limitedBaseQuery)
 	if err != nil {
 		log.Errorf("Error while querying database: %s", err)
 	}
@@ -131,26 +135,47 @@ func (s *SQLDatabaseProvider) EndScan() {
 	s.rows = nil
 }
 
-func (s *SQLDatabaseProvider) SearchMetadata() *models.OngoingSearchMetadata {
+func (s *SQLDatabaseProvider) AggregateResult(request *models.SearchAggregation) *models.AggregationResult {
 	// TODO: Create sepparate abstraction for this as it could changed from DB to DB
-	meta := &models.OngoingSearchMetadata{
-		Aggregation: &models.AggregationResult{
-			Buckets: make([]*models.Bucket, 0),
-		},
+	result := &models.AggregationResult{
+		Buckets: make([]*models.Bucket, 0),
 	}
-	interval := "1 HOUR"
+	if request.DateHistogram == nil {
+		return result
+	}
+	// TODO: make supoort for other databases not on clickhouse
+	//interval := request.DateHistogram.Interval
+	// TODO: add resolve interval
+	var interval string
+	err := s.intervalParser.Parse(request.DateHistogram, &interval)
+	if err != nil {
+		log.Warnf("Error while parsing interval: %s", err)
+		return result
+	}
+	field := request.DateHistogram.Field
+	var filterBy string
+	if s.filterQuery != nil {
+		sqlString, err := s.filterQuery.BuildQuery()
+		if err != nil {
+			log.Errorf("Error while building query: %s", err)
+		}
+		filterBy = fmt.Sprintf("WHERE %s", sqlString)
+	}
 	baseQuery := fmt.Sprintf(fmt.Sprintf(`
 	SELECT
-	   toStartOfInterval(dateTime, INTERVAL %s) AS interval,
+	   toStartOfInterval(%s, INTERVAL %s) AS interval,
 	   count() AS count
-	FROM %s
+	FROM %s 
+	%s
 	GROUP BY interval
 	ORDER BY interval
-	`, interval, s.table))
+	`, field, interval, s.table, filterBy))
+
 	log.Debugf("Query Metadata: %s", baseQuery)
 	rows, err := s.db.Query(baseQuery)
 	if err != nil {
-		log.Debugf("Error while querying database: %s", err)
+		log.Errorf("Error while querying database: %s", err)
+		return result
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -160,9 +185,8 @@ func (s *SQLDatabaseProvider) SearchMetadata() *models.OngoingSearchMetadata {
 		if err != nil {
 			log.Warnf("Error while scanning row: %s", err)
 		}
-		bucket.KeyAsString = ts.Format(time.RFC3339)
-		bucket.Key = ts.Unix()
-		meta.Aggregation.AddBucket(bucket)
+		bucket.FromTime(ts)
+		result.AddBucket(bucket)
 	}
-	return meta
+	return result
 }
