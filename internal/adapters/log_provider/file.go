@@ -26,11 +26,11 @@ type LogFileProvider struct {
 
 	timeRange *models.Range
 
-	currentFilter   ports.SearchFilter
-	currentLogEntry ports.LogEntry
+	currentFilter ports.SearchFilter
 
 	returnedResults int
 	limitResults    int
+	_hits           []ports.LogEntry
 }
 
 // NewLogFileProvider creates a new LogFileProvider struct
@@ -42,6 +42,7 @@ func NewLogFileProvider(filePath string, constructor ports.EntryConstructor, ind
 		mux:              sync.Mutex{},
 		intervalParser:   intervalParser,
 		filterFactory:    filterFactory,
+		returnedResults:  -1,
 	}
 }
 
@@ -52,6 +53,7 @@ func (f *LogFileProvider) BeginScan(r *models.SearchRequest) {
 	f.open()
 	f.timeRange = r.GetRange()
 	f.limitResults = r.Size
+	f._hits = make([]ports.LogEntry, 0, r.Size)
 	if f.indexer != nil {
 		err := f.indexer.LoadOrCreateIndex()
 		if err != nil {
@@ -74,17 +76,17 @@ func (f *LogFileProvider) BeginScan(r *models.SearchRequest) {
 }
 
 func (f *LogFileProvider) EndScan() {
-	f.currentLogEntry = nil
 	f.currentFilter = nil
 	f.timeRange = nil
-	f.returnedResults = 0
+	f.returnedResults = -1
 	f.limitResults = 0
+	f._hits = nil
 	f.close()
 	f.mux.Unlock()
 }
 
 func (f *LogFileProvider) LogEntry() ports.LogEntry {
-	return f.currentLogEntry
+	return f._hits[f.returnedResults]
 }
 
 func (f *LogFileProvider) Scan() bool {
@@ -106,7 +108,8 @@ func (f *LogFileProvider) Scan() bool {
 		if !f.currentFilter.Match(entry) {
 			continue
 		}
-		f.currentLogEntry = entry
+		//f._hits[f.returnedResults] = entry
+		f._hits = append(f._hits, entry)
 		f.returnedResults++
 		return true
 	}
@@ -114,7 +117,7 @@ func (f *LogFileProvider) Scan() bool {
 }
 
 func (f *LogFileProvider) Text() string {
-	return f.currentLogEntry.Raw()
+	return f._hits[f.returnedResults].RawString()
 }
 
 func (f *LogFileProvider) Err() error {
@@ -161,7 +164,13 @@ func (f *LogFileProvider) AggregateResult(request *models.SearchAggregation) *mo
 		b.FromTime(ts)
 		buckets[i] = b
 	}
-
+	for _, entry := range f._hits {
+		bucketIndex := int(entry.Timestamp().Sub(f.timeRange.DateTime.GTE) / interval)
+		if bucketIndex < 0 || bucketIndex >= intervalCount {
+			continue
+		}
+		buckets[bucketIndex].AddDoc()
+	}
 	for f.scanner.Scan() {
 		entry := f.entryConstructor()
 		err = entry.LoadBytes(f.scanner.Bytes())

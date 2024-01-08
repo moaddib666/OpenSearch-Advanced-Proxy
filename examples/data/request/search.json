@@ -1,0 +1,75 @@
+{
+  "sort": [
+    {
+      "timestamp": {
+        "order": "desc",
+        "unmapped_type": "boolean"
+      }
+    }
+  ],
+  "size": 500,
+  "version": true,
+  "aggs": {
+    "2": {
+      "date_histogram": {
+        "field": "timestamp",
+        "fixed_interval": "30s",
+        "time_zone": "Europe/Kiev",
+        "min_doc_count": 1
+      }
+    }
+  },
+  "stored_fields": [
+    "*"
+  ],
+  "script_fields": {
+    "hour_of_day": {
+      "script": {
+        "source": "doc['timestamp'].value.hour",
+        "lang": "painless"
+      }
+    }
+  },
+  "docvalue_fields": [
+    {
+      "field": "timestamp",
+      "format": "date_time"
+    }
+  ],
+  "_source": {
+    "excludes": []
+  },
+  "query": {
+    "bool": {
+      "must": [],
+      "filter": [
+        {
+          "match_all": {}
+        },
+        {
+          "range": {
+            "datetime": {
+              "gte": "2024-01-01T11:34:43.965Z",
+              "lte": "2024-01-01T11:49:43.965Z",
+              "format": "strict_date_optional_time"
+            }
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+  },
+  "highlight": {
+    "pre_tags": [
+      "@opensearch-dashboards-highlighted-field@"
+    ],
+    "post_tags": [
+      "@/opensearch-dashboards-highlighted-field@"
+    ],
+    "fields": {
+      "*": {}
+    },
+    "fragment_size": 2147483647
+  }
+}

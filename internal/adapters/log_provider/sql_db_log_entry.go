@@ -9,8 +9,12 @@ type SQLDBLogEntry struct {
 	fieldsMap map[string]interface{}
 }
 
-func (S *SQLDBLogEntry) Raw() string {
+func (S *SQLDBLogEntry) RawString() string {
 	return ""
+}
+
+func (S *SQLDBLogEntry) RawBytes() []byte {
+	return []byte{}
 }
 
 func (S *SQLDBLogEntry) Map() map[string]interface{} {

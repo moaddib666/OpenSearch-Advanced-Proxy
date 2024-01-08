@@ -1,7 +1,7 @@
 package log_provider
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/search/search_internval"
+	"OpenSearchAdvancedProxy/internal/adapters/search/search_interval"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
 	"database/sql"
@@ -40,7 +40,7 @@ func NewClickhouseProvider(dsn, table string, queryBuilder ports.QueryBuilderFac
 	if err != nil {
 		log.Fatalf("Error while opening database: %s", err)
 	}
-	return NewSQLDatabaseProvider(queryBuilder, db, table, entryConstructor, search_internval.NewClickHouseSearchIntervalParser())
+	return NewSQLDatabaseProvider(queryBuilder, db, table, entryConstructor, search_interval.NewClickHouseSearchIntervalParser())
 }
 
 func (s *SQLDatabaseProvider) Text() string {

@@ -16,7 +16,7 @@ var WebsocketDsn = "ws://localhost:8080/"
 var MetricsAddr = "0.0.0.0:9001"
 
 func init() {
-	log.SetLevel(log.InfoLevel)
+	log.SetLevel(log.DebugLevel)
 	// Get websockets dsn from env
 	if dsn := os.Getenv("WEBSOCKET_DSN"); dsn != "" {
 		WebsocketDsn = dsn

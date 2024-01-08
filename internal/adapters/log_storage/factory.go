@@ -4,9 +4,10 @@ import (
 	"OpenSearchAdvancedProxy/internal/adapters/convertor"
 	"OpenSearchAdvancedProxy/internal/adapters/indexer"
 	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
+	"OpenSearchAdvancedProxy/internal/adapters/monitoring"
 	"OpenSearchAdvancedProxy/internal/adapters/search"
 	"OpenSearchAdvancedProxy/internal/adapters/search/aggregate"
-	"OpenSearchAdvancedProxy/internal/adapters/search/search_internval"
+	"OpenSearchAdvancedProxy/internal/adapters/search/search_interval"
 	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
@@ -69,7 +70,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 				}
 			},
 			idx,
-			search_internval.NewTimeDurationIntervalParser(),
+			search_interval.NewTimeDurationIntervalParser(),
 			search.NewFilterFactory(),
 		)
 		entryConvertor := convertor.NewDefaultLogEntryConvertor(name)
@@ -87,7 +88,7 @@ func (b *BaseStorageFactory) createStorage(name string, cfg ports.ProviderConfig
 		}
 		proto := search.NewDistributedJsonSearchProtocol()
 		eventProcessor := NewEventProcessor(proto)
-		server := websockets.NewWebSocketServer(config.BindAddress, eventProcessor)
+		server := websockets.NewWebSocketServer(config.BindAddress, eventProcessor, monitoring.DefaultServerMonitor)
 		go server.Run(b.ctx)
 		aggregatorFactory := aggregate.NewMultiResultAggregateFactory()
 		return NewWebsocketServerStorage(name, fields, server, eventProcessor, proto, aggregatorFactory), nil

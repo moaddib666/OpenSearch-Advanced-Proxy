@@ -3,6 +3,7 @@ package aggregate
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	log "github.com/sirupsen/logrus"
 )
 
 type SingleResultAggregate struct {
@@ -28,6 +29,9 @@ func (d *SingleResultAggregate) aggregate() {
 
 func (d *SingleResultAggregate) GetResult() *models.SearchResult {
 	d.aggregate()
+	for name, agr := range d.result.Aggregations {
+		log.Debugf("%T: GetResult got %d bukets for %s", d, len(agr.Buckets), name)
+	}
 	return d.result
 }
 

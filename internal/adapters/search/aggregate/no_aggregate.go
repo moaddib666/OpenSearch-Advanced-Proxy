@@ -3,6 +3,7 @@ package aggregate
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	log "github.com/sirupsen/logrus"
 )
 
 type NoAggregation struct {
@@ -14,6 +15,12 @@ func (n *NoAggregation) AddResult(result *models.SearchResult) {
 }
 
 func (n *NoAggregation) GetResult() *models.SearchResult {
+	if n.result.Aggregations == nil {
+		n.result.Aggregations = make(map[string]*models.AggregationResult)
+	}
+	for name, agr := range n.result.Aggregations {
+		log.Debugf("%T: GetResult got %d bukets for %s", n, len(agr.Buckets), name)
+	}
 	return n.result
 }
 

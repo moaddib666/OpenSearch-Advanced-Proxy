@@ -63,7 +63,7 @@ type MultiMatchFilter struct {
 }
 
 func (m *MultiMatchFilter) Match(entry ports.LogEntry) bool {
-	return strings.Contains(entry.Raw(), m.model.Query)
+	return strings.Contains(entry.RawString(), m.model.Query)
 }
 
 // NewMultiMatchFilter creates a new multi-match filter

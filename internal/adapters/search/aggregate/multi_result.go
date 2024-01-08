@@ -3,6 +3,7 @@ package aggregate
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
 	"OpenSearchAdvancedProxy/internal/core/ports"
+	log "github.com/sirupsen/logrus"
 	"sort"
 )
 
@@ -84,29 +85,21 @@ func (d *MultiResultAggregate) aggregateRawAggregations() {
 	d.result.Aggregations = make(map[string]*models.AggregationResult)
 	// TODO Optimize this, to avoit multieple iterations and sourtin on each iteration
 	for name, agr := range d.rawAggregations {
-		if d.result.Aggregations[name] == nil {
-			d.result.Aggregations[name] = agr
-			continue
-		}
 
 		// Convert existing buckets into a map for quick lookup
-		bucketMap := make(map[int64]*models.Bucket) // Replace KeyType with the actual type of the bucket key
-		for _, existingBucket := range d.result.Aggregations[name].Buckets {
-			bucketMap[existingBucket.Key] = existingBucket
-		}
-
+		tmpBucketMap := make(map[int64]*models.Bucket) // Replace KeyType with the actual type of the bucket key
 		// Merge or add buckets
 		for _, bucket := range agr.Buckets {
-			if existingBucket, exists := bucketMap[bucket.Key]; exists {
+			if existingBucket, exists := tmpBucketMap[bucket.Key]; exists {
 				existingBucket.DocCount += bucket.DocCount
 			} else {
-				bucketMap[bucket.Key] = bucket
+				tmpBucketMap[bucket.Key] = bucket
 			}
 		}
 
 		// Convert map back to slice
-		updatedBuckets := make([]*models.Bucket, 0, len(bucketMap))
-		for _, bucket := range bucketMap {
+		updatedBuckets := make([]*models.Bucket, 0, len(tmpBucketMap))
+		for _, bucket := range tmpBucketMap {
 			updatedBuckets = append(updatedBuckets, bucket)
 		}
 
@@ -115,12 +108,17 @@ func (d *MultiResultAggregate) aggregateRawAggregations() {
 			return updatedBuckets[i].Key < updatedBuckets[j].Key
 		})
 
-		d.result.Aggregations[name].Buckets = updatedBuckets
+		d.result.Aggregations[name] = &models.AggregationResult{
+			Buckets: updatedBuckets,
+		}
 	}
 }
 
 func (d *MultiResultAggregate) GetResult() *models.SearchResult {
 	d.aggregate()
+	for name, agr := range d.result.Aggregations {
+		log.Debugf("%T: GetResult got %d bukets for %s", d, len(agr.Buckets), name)
+	}
 	return d.result
 }
 

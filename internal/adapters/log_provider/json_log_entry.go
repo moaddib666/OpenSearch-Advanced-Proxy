@@ -9,21 +9,30 @@ import (
 )
 
 type JsonLogEntry struct {
-	raw            string
+	raw            []byte
 	TimeStampField string
+	_map           map[string]interface{}
+	_ts            time.Time
 }
 
-func (j *JsonLogEntry) Raw() string {
+func (j *JsonLogEntry) RawString() string {
+	return string(j.raw)
+}
+
+func (j *JsonLogEntry) RawBytes() []byte {
 	return j.raw
 }
 
 func (j *JsonLogEntry) Map() map[string]interface{} { // TODO cache this
-	logMap := make(map[string]interface{})
-	err := json.Unmarshal([]byte(j.raw), &logMap) // FIXME bytes
+	if j._map != nil {
+		return j._map
+	}
+	j._map = make(map[string]interface{})
+	err := json.Unmarshal(j.raw, &j._map) // FIXME bytes
 	if err != nil {
 		log.Warnf("Error unmarshalling json log entry: %s", err.Error())
 	}
-	return logMap
+	return j._map
 }
 
 // As json log does not have an id generate new uuid
@@ -32,6 +41,9 @@ func (j *JsonLogEntry) ID() string {
 }
 
 func (j *JsonLogEntry) Timestamp() time.Time {
+	if !j._ts.IsZero() {
+		return j._ts
+	}
 	logMap := j.Map()
 	ts, ok := logMap[j.TimeStampField]
 	if !ok {
@@ -48,25 +60,26 @@ func (j *JsonLogEntry) Timestamp() time.Time {
 		log.Debugf("Timestamp field `%s` is not a valid RFC3339 string", j.TimeStampField)
 		return time.Time{}
 	}
-	return tsTime
+	j._ts = tsTime
+	return j._ts
 }
 
 func (j *JsonLogEntry) LoadString(raw string) error {
-	j.raw = raw
+	j.raw = []byte(raw)
 	return nil
 }
 
 func (j *JsonLogEntry) LoadBytes(raw []byte) error {
-	j.raw = string(raw)
+	j.raw = raw
 	return nil
 }
 
 func (j *JsonLogEntry) LoadMap(raw map[string]interface{}) error {
-	rawJson, err := json.Marshal(raw)
+	var err error
+	j.raw, err = json.Marshal(raw)
 	if err != nil {
 		return err
 	}
-	j.raw = string(rawJson)
 	return err
 }
 

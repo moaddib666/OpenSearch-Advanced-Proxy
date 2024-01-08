@@ -65,9 +65,10 @@ type WebSocketServer struct {
 	EventProcessor ports.WebsocketServerEventProcessor
 	httpServer     *http.ServeMux
 	bindAddress    string
+	monitor        ports.WebsocketServerMonitor
 }
 
-func NewWebSocketServer(bindAddress string, processor ports.WebsocketServerEventProcessor) *WebSocketServer {
+func NewWebSocketServer(bindAddress string, processor ports.WebsocketServerEventProcessor, monitor ports.WebsocketServerMonitor) *WebSocketServer {
 	return &WebSocketServer{
 		Clients:        make(map[*ServerClient]bool),
 		Register:       make(chan *ServerClient),
@@ -76,6 +77,7 @@ func NewWebSocketServer(bindAddress string, processor ports.WebsocketServerEvent
 		EventProcessor: processor,
 		bindAddress:    bindAddress,
 		httpServer:     http.NewServeMux(),
+		monitor:        monitor,
 	}
 }
 
@@ -102,10 +104,12 @@ func (server *WebSocketServer) Run(ctx context.Context) {
 		case client := <-server.Register:
 			server.Mutex.Lock()
 			server.Clients[client] = true
+			server.monitor.RegisterClient(client)
 			server.Mutex.Unlock()
 			go client.Listen() // Start listening for close event
 		case client := <-server.Unregister:
 			server.Mutex.Lock()
+			server.monitor.UnregisterClient(client)
 			delete(server.Clients, client)
 			server.Mutex.Unlock()
 		case <-ctx.Done():

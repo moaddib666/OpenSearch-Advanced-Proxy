@@ -73,6 +73,6 @@ SearchLoop:
 		Failed:     failedShardCount,
 	}
 	aggregate := s.aggregation.CreateAggregator(request, s.provider)
-	aggregate.AddResult(models.NewSearchResult(int(s.tracker.GetDuration().Seconds()), timeout, shards, hits))
+	aggregate.AddResult(models.NewSearchResult(int(s.tracker.GetDuration().Milliseconds()), timeout, shards, hits))
 	return aggregate.GetResult(), nil
 }

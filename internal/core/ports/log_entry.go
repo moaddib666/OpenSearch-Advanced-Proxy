@@ -3,7 +3,8 @@ package ports
 import "time"
 
 type LogEntry interface {
-	Raw() string
+	RawString() string
+	RawBytes() []byte
 	Map() map[string]interface{}
 	Timestamp() time.Time
 	LoadString(string string) error

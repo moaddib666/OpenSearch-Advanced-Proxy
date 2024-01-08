@@ -1,4 +1,4 @@
-package search_internval
+package search_interval
 
 import (
 	"OpenSearchAdvancedProxy/internal/core/models"
