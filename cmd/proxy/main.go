@@ -17,7 +17,7 @@ var OpenSearchAddr = "http://localhost:9200"
 var ConfigDir = ".local/config"
 
 func init() {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 	if url := os.Getenv("ELASTICSEARCH_URL"); url != "" {
 		log.Debugf("Using ELASTICSEARCH_URL from environment: %s", url)
 		OpenSearchAddr = url

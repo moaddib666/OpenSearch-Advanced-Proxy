@@ -57,7 +57,7 @@ func (j *JsonLogEntry) Timestamp() time.Time {
 	}
 	tsTime, err := time.Parse(time.RFC3339, tsStr)
 	if err != nil {
-		log.Debugf("Timestamp field `%s` is not a valid RFC3339 string", j.TimeStampField)
+		log.Debugf("Timestamp field `%s` is not a valid RFC3339 string - %s", j.TimeStampField, logMap[j.TimeStampField])
 		return time.Time{}
 	}
 	j._ts = tsTime

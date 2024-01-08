@@ -12,7 +12,7 @@ func (d *DefaultTimeTracker) Start() {
 }
 
 func (d *DefaultTimeTracker) Stop() {
-	d.startTime = time.Now()
+	d.endTime = time.Now()
 }
 
 func (d *DefaultTimeTracker) GetDuration() time.Duration {
