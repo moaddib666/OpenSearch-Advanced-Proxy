@@ -94,9 +94,17 @@ services:
     networks:
       - odfe-net
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+      - ${PWD}/infrastrcuture/docker/loki/loki-config.yaml:/etc/loki/local-config.yaml
+
 volumes:
   odfe-data:
   clickhouse_shard_data:
-
+  loki-data:
 networks:
   odfe-net:

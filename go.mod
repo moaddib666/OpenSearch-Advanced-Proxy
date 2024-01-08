@@ -6,6 +6,7 @@ require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
+	github.com/grafana/loki v1.6.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.0

@@ -7,3 +7,11 @@
 ## Storage
 - Add Grafana Loki support
   - Implement Query Builder
+
+## Security
+
+- Develop authentication and authorization for Opensearch Dashboards requests
+- Design shard access control
+  - Make possible to handle several indexes by one shard
+  - Create authorization rules for shards (JWT/NoAuth)
+  
