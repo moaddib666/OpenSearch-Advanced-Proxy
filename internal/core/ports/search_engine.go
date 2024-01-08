@@ -1,8 +1,8 @@
 package ports
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
 	"context"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 )
 
 type SearchEngine interface {

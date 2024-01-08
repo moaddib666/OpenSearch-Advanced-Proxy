@@ -1,8 +1,8 @@
 package search
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
 	"encoding/json"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 )
 
 type DistributedJsonSearchProtocol struct {

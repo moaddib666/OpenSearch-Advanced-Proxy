@@ -1,7 +1,7 @@
 package monitoring
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/ports"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )

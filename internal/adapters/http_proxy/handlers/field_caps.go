@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
 	"encoding/json"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )

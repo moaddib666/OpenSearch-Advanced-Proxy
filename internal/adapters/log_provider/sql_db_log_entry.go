@@ -1,7 +1,7 @@
 package log_provider
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/ports"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	"time"
 )
 

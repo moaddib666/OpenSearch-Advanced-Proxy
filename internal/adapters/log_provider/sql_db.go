@@ -1,12 +1,12 @@
 package log_provider
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/search/search_interval"
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"database/sql"
 	"fmt"
 	_ "github.com/ClickHouse/clickhouse-go"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search/search_interval"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"

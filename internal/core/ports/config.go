@@ -1,6 +1,6 @@
 package ports
 
-import "OpenSearchAdvancedProxy/internal/core/models"
+import "github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 
 type AppConfig interface {
 	AvailableIndexes() []*models.SubConfig

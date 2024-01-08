@@ -1,12 +1,12 @@
 package log_provider_test
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
-	"OpenSearchAdvancedProxy/internal/adapters/search"
-	"OpenSearchAdvancedProxy/internal/adapters/search/search_interval"
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"encoding/json"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/log_provider"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search/search_interval"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	"os"
 	"testing"
 )

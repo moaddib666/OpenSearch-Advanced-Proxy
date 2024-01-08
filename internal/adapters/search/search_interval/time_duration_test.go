@@ -1,7 +1,7 @@
 package search_interval
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 	"testing"
 	"time"
 

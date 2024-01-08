@@ -1,9 +1,9 @@
 package search
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"fmt"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 	"strings"
 )

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/config"
-	"OpenSearchAdvancedProxy/internal/adapters/log_storage"
-	"OpenSearchAdvancedProxy/internal/adapters/monitoring"
-	"OpenSearchAdvancedProxy/internal/adapters/search"
-	"OpenSearchAdvancedProxy/internal/adapters/websockets"
 	"context"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/config"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/log_storage"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/monitoring"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/websockets"
 	log "github.com/sirupsen/logrus"
 	"os"
 )

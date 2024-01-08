@@ -1,8 +1,8 @@
 package convertor
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 )
 
 type DefaultLogEntryConvertor struct {

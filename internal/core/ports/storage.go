@@ -1,6 +1,6 @@
 package ports
 
-import "OpenSearchAdvancedProxy/internal/core/models"
+import "github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 
 // Storage is the interface that represents the external log storage.
 type Storage interface {

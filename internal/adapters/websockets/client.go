@@ -1,10 +1,10 @@
 package websockets
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
 	"github.com/gorilla/websocket"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"

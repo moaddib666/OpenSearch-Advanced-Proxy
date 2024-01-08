@@ -1,10 +1,10 @@
 package search
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/tracker"
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/tracker"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 )
 

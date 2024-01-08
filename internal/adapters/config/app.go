@@ -1,7 +1,7 @@
 package config
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 	"os"

@@ -1,17 +1,17 @@
 package log_storage
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/convertor"
-	"OpenSearchAdvancedProxy/internal/adapters/indexer"
-	"OpenSearchAdvancedProxy/internal/adapters/log_provider"
-	"OpenSearchAdvancedProxy/internal/adapters/monitoring"
-	"OpenSearchAdvancedProxy/internal/adapters/search"
-	"OpenSearchAdvancedProxy/internal/adapters/search/aggregate"
-	"OpenSearchAdvancedProxy/internal/adapters/search/search_interval"
-	"OpenSearchAdvancedProxy/internal/adapters/websockets"
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/convertor"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/indexer"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/log_provider"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/monitoring"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search/aggregate"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/search/search_interval"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/websockets"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,9 +1,9 @@
 package http_proxy
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/http_proxy/handlers"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"context"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/http_proxy/handlers"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"reflect"

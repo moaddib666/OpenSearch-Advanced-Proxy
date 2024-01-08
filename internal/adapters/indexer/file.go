@@ -1,12 +1,12 @@
 package indexer
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/lock"
-	"OpenSearchAdvancedProxy/internal/core/models"
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/lock"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/models"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"

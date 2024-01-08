@@ -1,8 +1,8 @@
 package tracker_test
 
 import (
-	"OpenSearchAdvancedProxy/internal/adapters/tracker"
 	"fmt"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/adapters/tracker"
 	"testing"
 	"time"
 )

@@ -1,9 +1,9 @@
 package log_provider
 
 import (
-	"OpenSearchAdvancedProxy/internal/core/ports"
 	"encoding/json"
 	"github.com/google/uuid"
+	"github.com/moaddib666/OpenSearch-Advanced-Proxy/internal/core/ports"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
